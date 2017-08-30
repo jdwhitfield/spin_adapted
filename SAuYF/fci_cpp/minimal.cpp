@@ -156,8 +156,11 @@ PrimDiffs(const std::vector<int>& primRef, const std::vector<int>& primK,
 
         for(int K_orb_idx=0; K_orb_idx<N; K_orb_idx++) //see if its in the K prim
         {
+	
             if(occ_orb==primK[Pk[K_orb_idx]]) // found orb from ref in prim K
             {
+		if(Pk[K_orb_idx]==
+		ctr=1;
                 found=true;
                 break;
             }
