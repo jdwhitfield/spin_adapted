@@ -15,7 +15,7 @@
 #define PARSER_LIB
 
 // Eigen matrix algebra library
-#include <Eigen/Dense>
+#include <Eigen>
 // Libint Gaussian integrals library
 #include <libint2.hpp>
 
