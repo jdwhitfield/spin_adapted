@@ -17,6 +17,8 @@ int
 perm_multiply(const std::vector<int>& P1, const std::vector<int>& P2,          
               std::vector<int>&      result);
 
+int
+Eij(int i, int j, tableaux
 
 int 
 main()
