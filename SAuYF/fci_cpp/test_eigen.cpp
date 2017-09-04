@@ -23,7 +23,7 @@ main()
     int dim;
     double* matrix_col_major_upper;
     Eigen::MatrixXd matrix;	
-    bool debug=true;
+    bool debug=false;
 
     ifstream file("matrix.dat");
 
@@ -238,7 +238,8 @@ main()
     for(int i=0; i<dim; i++)
     {
 	    diff+=abs(evs_eigen[i]-evs_lapack[i]);
-   	    cout<< i << " : " << evs_eigen[i]<< "," << evs_lapack[i] << endl;
+	    if(debug)
+		    cout<< i << " : " << evs_eigen[i]<< "," << evs_lapack[i] << endl;
 	    trace_eigen+=evs_eigen[i];
 	    trace_lapack+=evs_lapack[i];
     }
