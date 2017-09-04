@@ -10,19 +10,22 @@ OPT_FLAG=  -O3
 CXXFLAGS= -std=c++11 -w
 
 
-INCLUDESLibint	=-I/usr/local/include -I/usr/local/include/eigen -I/usr/local/include/libint2 -I/opt/local/include
-LIBSLibint      =-L/usr/local/lib -lint2
+INCLUDESLibint	=-I/usr/local/include -I/usr/include/eigen3/Eigen -I/usr/include/eigen3/ -I/usr/local/libint/2.4.0-beta.3/include -I/opt/local/include
+LIBSLibint      =-L/usr/local/lib  -L/usr/local/libint/2.4.0-beta.3/lib -lint2
 LIBSLapack	=-L/opt/local/lib/lapack -llapack  -lblas -llapacke  
 LIBS	        =-lm -lgmp -lgmpxx $(LIBSLapack) $(LIBSLibint)
 INCLUDES        =$(INCLUDESLibint) 
 
-all: fci
+all: test_eigen
 	
 minimal.o: minimal.cpp ci_matrix.cpp
 	$(CXX) minimal.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) -c -o minimal.o
 
 minimal:minimal.o 
 	$(CXX) $(CXXFLAGS) minimal.o -o minimal
+
+test_eigen: test_eigen.cpp
+	g++ -std=c++11 test_eigen.cpp -I/usr/local/include/eigen -llapack -llapacke -o test_eigen
 
 fci:fci.o ci_matrix.o parser.o libint_interface.o
 	$(CXX) $(CXXFLAGS) fci.o libint_interface.o ci_matrix.o parser.o $(LIBS) -o fci
