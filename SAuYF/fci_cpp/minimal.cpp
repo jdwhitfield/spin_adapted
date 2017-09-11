@@ -128,9 +128,12 @@ PRIMDIFFS takes
  */ 
 int // return excitation level
 PrimDiffs(int M, const std::vector<int>& primRef, const std::vector<int>& primK,
-	  std::vector<int>&         Pr  , std::vector<int>&         Pk) 
+	  std::vector<int>&         Pr  , std::vector<int>&         Pk, 
+	  double scaling_factor) 
 {
 
+    //not using yet
+    scaling_factor=1;
 
     //empty containers
     Pk.clear();

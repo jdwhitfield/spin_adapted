@@ -1,9 +1,7 @@
 //Complile command
 //g++ -std=c++11 test_eigen.cpp -I/usr/local/include/eigen -llapack -llapacke -o test_eigen
 #include<stdio.h>
-#include<lapacke.h>
 #include<fstream>
-#include<Eigen/Eigen>
 #include<stdlib.h>
 #include<iostream>
 #include<assert.h>
@@ -11,6 +9,9 @@
 #include<random>
 #include<chrono>
 #include<algorithm>
+#include<lapacke.h>
+#define EIGEN_USE_LAPACKE
+#include<Eigen/Eigen>
 
 void
 reset_array(int dim, Eigen::MatrixXd matrix, double*& array);
