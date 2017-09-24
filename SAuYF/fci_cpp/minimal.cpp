@@ -99,10 +99,343 @@ antisymmeterizer(const std::vector<int>& idx_list, std::vector<int>& input_strin
 	return 0;
 }
 
+class tableaux
+{
+	public: 
+		std::vector<int> shape;
+};
+
+void
+print(const std::vector<int> tableau, const std::vector<int> frame)
+{
+	//print tableau
+	for(auto c : tableau)
+	   std::cout << c <<" ";
+	std::cout << std::endl;
+}
+
+void
+pos_to_row_col(const int pos,const std::vector<int> frame, int& row, int& col)
+{
+	int ctr=0;
+	int val=frame[0];
+
+
+	/*
+	for(int s=0; s<frame.size(); s++)
+	{
+
+		int partial_s=0;
+		for(int idx=0; idx<1+s; idx++)
+			partial_s=partial_s+frame[idx];
+
+		//std::cout << s << ": " <<  partial_s << "\n";
+
+		if( partial_s-1 <pos) // -1 because we count pos from zero
+			continue;
+
+		//row=k;
+		if(partial_s-1==pos) col=0;
+		
+
+		
+	}
+	*/
+
+	while(1)
+	{
+		
+		//val has partial sum of the frame rows
+		//e.g. 221
+		//val = 2
+		//val +=2; val=4;
+		//val +=1; val=5;
+		
+		//ctr contains the row number index
+		
+		//if pos is less than val then it's in this row
+		if(pos<val)
+		{
+		   row=ctr;
+
+		   if(frame[row]==1)
+			   col=0;
+
+		   if(frame[row]==2)
+		   {
+			   //std::cout << val << " and " << 2*row << "\n";
+
+			   /*
+			   int temp=0;
+			   for(int m=0; m<row; m++)
+			   {
+				   temp=temp+frame[m];
+			   }
+			   */
+
+			   
+			   col=pos % 2; //if its odd its the second elem in the row
+		   }
+
+		   return;
+
+		   break;
+		}
+		
+		ctr++;
+
+		if(ctr==frame.size())//out of bounds
+		{
+			std::cout << "out of bounds ( ::pos_to_row)\n";
+			std::cout << "pos: "<< pos << " , sum_frame : ";
+			int tot=0;
+			for(int m=0; m<frame.size(); m++)
+				tot=tot+frame[m];
+			std::cout << tot << "\n";
+			return;
+			break;
+		}
+
+		//add in next row to total val
+		val=val+frame[ctr];
+	}
+
+}
+
 int 
 main()
 {
 	using namespace std;
+
+	int M=4;
+	int N=5;
+	int ctr=0;
+
+	std::vector<int> frame{2,2,2,1,1};
+	std::vector<int> tableau;
+
+	//initialize tableau
+	ctr=0;
+	for(int row=0; row<frame.size(); row++)
+	{
+		if(frame[row]==2)
+		{
+			tableau.push_back(ctr);
+			tableau.push_back(ctr);
+			ctr++;
+		}
+		else
+		{
+			tableau.push_back(ctr);
+			ctr++;
+		}
+	}
+
+	print(tableau,frame);
+
+	//int row,col;
+	int row,col;
+	pos_to_row_col(0,frame,row,col);
+	cout<< "position 0 is in row " << row << ", col: "<< col << endl;
+	pos_to_row_col(1,frame,row,col);
+	cout<< "position 1 is in row " << row << ", col: "<< col << endl;
+	pos_to_row_col(2,frame,row,col);
+	cout<< "position 2 is in row " << row << ", col: "<< col << endl;
+	pos_to_row_col(3,frame,row,col);
+	cout<< "position 3 is in row " << row << ", col: "<< col << endl;
+	pos_to_row_col(4,frame,row,col);
+	cout<< "position 4 is in row " << row << ", col: "<< col << endl;
+	pos_to_row_col(5,frame,row,col);
+	cout<< "position 5 is in row " << row << ", col: "<< col << endl;
+	pos_to_row_col(6,frame,row,col);
+	cout<< "position 6 is in row " << row << ", col: "<< col << endl;
+	pos_to_row_col(7,frame,row,col);
+	cout<< "position 7 is in row " << row << ", col: "<< col << endl;
+
+
+	return 0;
+
+	/*
+	int row=0;
+	int col=0;
+	*/
+	int pos=N-1;
+	ctr=0;
+	bool reset=false;
+	while(1)
+	{
+		//advance clock digit
+		tableau[pos]++;
+
+		//check if it went too far
+		if(tableau[pos]==M)
+		{
+
+			//reset lower digits
+			for(int p=pos+1; p<N; p++)
+				tableau[p]=0;
+
+			//lowest_val
+			int pos_min=0;
+
+			//figure what the minimal value should be
+
+			//check above
+			//get row from pos
+			pos_to_row_col(pos,frame,row,col);
+
+			//r=row(pos);
+			
+
+
+			
+
+			pos_min=tableau[pos-1]+1;
+
+			
+
+			//reset
+			tableau[pos]=pos_min;
+
+			pos--;
+			if(pos<0)
+				break;
+			else
+				continue;
+		}
+		else
+		{
+			pos=N-1;
+		}
+		
+
+		//print clock
+		for(auto c : tableau)
+		   cout << c <<" ";
+	        cout << endl;
+
+
+
+
+		ctr++;
+		if(ctr>50)
+			break;
+	}
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	vector<int> Clock;
+	//initialize clock
+	for(int j=0; j<N; j++)
+		Clock.push_back(0);
+
+	//print clock
+	for(auto c : Clock)
+	   cout << c <<" ";
+	cout << endl;
+
+
+	pos=N-1;
+	ctr=0;
+	reset=false;
+	while(1)
+	{
+		//advance clock digit
+		Clock[pos]++;
+
+		//check if it went too far
+		if(Clock[pos]==M)
+		{
+
+			//reset lower digits
+			for(int p=pos+1; p<N; p++)
+				Clock[p]=0;
+
+			//lowest_val
+			int pos_min=0;
+
+			//figure what the minimal value should be
+			pos_min=Clock[pos-1]+1;
+
+			
+
+			//reset
+			Clock[pos]=pos_min;
+
+			pos--;
+			if(pos<0)
+				break;
+			else
+				continue;
+		}
+		else
+		{
+			pos=N-1;
+		}
+		
+
+		//print clock
+		for(auto c : Clock)
+		   cout << c <<" ";
+	        cout << endl;
+
+
+
+
+		ctr++;
+		if(ctr>50)
+			break;
+	}
+
+
+
+
+
+	return 0;
+
+
+	double S=.5;
 
 
 	vector<int> occ;
@@ -115,11 +448,77 @@ main()
 	 1 2
 	 3 4
 	 5
+
+
+	 1 1
+	 2
+
+	 1 1
+	 3
+
+	 1 1
+	 4
+
 	*/
+
+
+	int m=4;
+	for(int i=0; i<m; i++)
+		for(int j=0; j<2; j++)
+		{
+			
+			cout << " counter: " << ctr 
+			     << " w/ (i,j)=(" << i << "," << j <<") ->"
+			     << 2*i+j << endl;
+			ctr++;
+
+		}
+
+	return 0;
 
 	cout << num_weyl(3,3,2) << "\n";
 	cout << num_weyl(8,5,2) << "\n";
 	cout << num_weyl(4,3,2) << "\n";
+
+	//enumerate_weyl_tabs;
+	std::vector<int> L{2,2,1};
+	std::vector<int> tableaux;
+
+	
+	//initial tableaux
+	tableaux.clear();
+	for(int n=0; n<N; n++)
+		tableaux.push_back(n);
+	
+	//loop over the tableaux
+	/*
+	int r=size.L;
+
+	L
+	2  , 2	, 1
+	T
+	1 1, 2 2, 3
+
+	for(int t=0; t<num_weyl(M,N,2*S+1); t++)
+	{
+		
+		if(L[row]==2)
+		{
+			if(row>0)
+				r1min=tableaux[2*(r-1)+0]; //check the previous row
+				
+			//Anita Gupta, Production Buyer, Wonder Woman 2017
+			for(int r1=r1min; r1<M; r1++)
+		}
+		
+		for(int i=0; i<L.size(); i++)
+			//loop over indices of each row
+			for(int r1=0; r1<M; r1++)
+				for(int r2=0; r2<M; r2++)
+					;
+
+	}
+	*/
 
 	return 0;
 
