@@ -7,16 +7,97 @@
 #include<random>
 #include<chrono>
 #include<algorithm>
-
+//
+/// fac[k] = k!
+static constexpr std::array<int64_t,21> fac = {{1L, 1L, 2L, 6L, 24L, 120L, 720L, 5040L, 40320L, 362880L, 3628800L, 39916800L,
+                                                    479001600L, 6227020800L, 87178291200L, 1307674368000L, 20922789888000L,
+                                                    355687428096000L, 6402373705728000L, 121645100408832000L,
+                                                    2432902008176640000L}};
+ 
 
 int
 PrimDiffs(int M, const std::vector<int>& primRef, const std::vector<int>& primK,
-	  std::vector<int>&         Pr  , std::vector<int>&         Pk ) ;
+	  std::vector<int>&         Pr  , std::vector<int>&         Pk, 
+	  double scaling_factor);
 
 int 
 perm_multiply(const std::vector<int>& P1, const std::vector<int>& P2,          
               std::vector<int>&      result);
 
+int
+nchoosek(int M,int N)
+{
+	return fac[M]/(fac[M-N]*fac[N]);
+}
+
+int
+num_weyl(int M, int N, int ms)
+{
+	// Hall-Robinson formula
+	// See slide 21 of generalized_operators.pdf
+	
+	if(M>21) 
+	{
+		std::cout << "M is too large (ci_matrix::num_weyl)\n"; return -999;
+	}
+
+	double S=(ms -1)/2.0;
+	/*
+	std::cout << "M: " << M << "\n";
+	std::cout << "N: " << N << "\n";
+	std::cout << "S: " << S << "\n";
+	*/ 
+	
+        auto a=(ms)*1.0/(M+1.0);
+        /*
+	std::cout << "2S+1/M+1="<<ms <<"/"<<M+1.0 << ": "<< a << "\n ";
+        */
+
+	auto k1= .5*N+S+1;
+
+        auto b=nchoosek(M+1,k1);
+	/*
+	std::cout << "nchoosek(M+1,N/2+S+1)=nchoosek(" 
+		  << M+1 << "," << k1 << "): "<<b << "\n ";
+        */
+        
+	auto k2= .5*N-S;
+        auto c=nchoosek(M+1,k2);
+	/*
+	std::cout << "nchoosek(M+1,N/2-S)=nchoosek(" 
+		  << M+1 << "," << k1 << "): "<<c << "\n ";
+         */
+
+        //int64_t a=(ms/(M+1.0))*fac[M]/fac[M-1-(N-2.0*S)/2.0];
+        //int64_t b=fac[M+1]/fac[M+S-N/2.0];
+        //int64_t c=fac[1+(N+2.0*S)/2.0]*fac[(N/2.0)-S];
+
+return  (a*b*c);	
+}
+
+
+int 
+antisymmeterizer(const std::vector<int>& idx_list, std::vector<int>& input_string)
+{
+
+	/*
+	 123
+	 132
+	 213
+	 231
+	 312
+	 321
+	 */ 
+
+	int n=idx_list.size();
+	for(int j=0; j<fac[n]; j++)
+	{
+	   std::vector<int> permj(n);
+	}
+
+
+	return 0;
+}
 
 int 
 main()
@@ -28,12 +109,51 @@ main()
 	vector<int> virt;
 	vector<int> Pr;
 	vector<int> Pk;
+	double c;
+
+	/*
+	 1 2
+	 3 4
+	 5
+	*/
+
+	cout << num_weyl(3,3,2) << "\n";
+	cout << num_weyl(8,5,2) << "\n";
+	cout << num_weyl(4,3,2) << "\n";
+
+	return 0;
+
+	int col1[] = {1,3,5};
+	int nc1    = 3;
+	int phase  = +1;
+
+	//print antisymmetrizer
+	do
+	{
+
+		if(phase>0)
+		{
+			std::cout << "+ ";
+			phase=-1;
+		}
+		else
+		{
+			std::cout << "- ";
+			phase=+1;
+		}
+
+		std::cout << col1[0] << ' ' 
+		          << col1[1] << ' ' 
+		          << col1[2] << ' ' 
+		          << col1[3] << std::endl;
+
+	}while(std::next_permutation(col1,col1+nc1)) ;
 
 	//unit tests
 	{
 	vector<int> left  {1,5,3,7,2,2,6};
 	vector<int> right {1,9,5,4,7,3,6};
-	auto ndiff=PrimDiffs(10,left,right,Pr,Pk);
+	auto ndiff=PrimDiffs(10,left,right,Pr,Pk,c);
 	std::cout<< "diffs: "<<ndiff;
         }
 	/*
@@ -55,7 +175,7 @@ sorted K: 4 9 1 3 5 6 7
         {
 	vector<int> left  {1,9,3,7,2,2,6};
 	vector<int> right {1,2,3,6,9,5,4};
-	auto ndiff=PrimDiffs(10,left,right,Pr,Pk);
+	auto ndiff=PrimDiffs(10,left,right,Pr,Pk,c);
 	std::cout<< "diffs: "<<ndiff;
 	}
        /*
@@ -77,7 +197,7 @@ sorted K: 4 5 1 2 3 6 9
 	{
 	vector<int> left  {1,9,3,7,2,2,6};
 	vector<int> right {0,2,3,6,9,5,4};
-	PrimDiffs(10,left,right,Pr,Pk);
+	PrimDiffs(10,left,right,Pr,Pk,c);
 	}
 	
 	vector<int> Peye {0,1,2};
