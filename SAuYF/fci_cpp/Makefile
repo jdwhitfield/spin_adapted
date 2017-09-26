@@ -16,8 +16,11 @@ LIBSLapack	=-L/opt/local/lib/lapack -llapack  -lblas -llapacke
 LIBS	        =-lm -lgmp -lgmpxx $(LIBSLapack) $(LIBSLibint)
 INCLUDES        =$(INCLUDESLibint) 
 
-all: fci
+all: weyl
 	
+weyl: weyl.cpp
+	g++ weyl.cpp -std=c++11 -o weyl; ./weyl > output
+
 minimal.o: minimal.cpp ci_matrix.cpp
 	$(CXX) minimal.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) -c -o minimal.o
 
