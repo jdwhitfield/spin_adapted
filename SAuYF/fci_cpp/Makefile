@@ -16,13 +16,13 @@ LIBSLapack	=-L/opt/local/lib/lapack -llapack  -lblas -llapacke
 LIBS	        =-lm -lgmp -lgmpxx $(LIBSLapack) $(LIBSLibint)
 INCLUDES        =$(INCLUDESLibint) 
 
-all: test_eigen
+all: weyl
 	
-minimal.o: minimal.cpp ci_matrix.cpp
-	$(CXX) minimal.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) -c -o minimal.o
+weyl.o: weyl.cpp ci_matrix.cpp
+	$(CXX) weyl.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) -c -o weyl.o
 
-minimal:minimal.o 
-	$(CXX) $(CXXFLAGS) minimal.o -o minimal
+weyl:weyl.o 
+	g++ weyl.cpp -std=c++11 -o weyl; ./weyl > output
 
 test_eigen: test_eigen.cpp
 	g++ -std=c++11 test_eigen.cpp -I/usr/local/include/eigen -llapack -llapacke -o test_eigen
