@@ -38,6 +38,9 @@
 #include "parser.h"
 #include "ci_matrix.h"
 
+int
+get_integrals(const char* basis_fname, const char* nuc_fname, int& M, int& N, Matrix& h2, std::vector<double>& h4);
+
 void
 get_libints(const libint2::BasisSet& basisset, const std::vector<libint2::Atom>& atoms,
             Matrix &S, Matrix &hV, Matrix &hT, vector<double>& AOInts);

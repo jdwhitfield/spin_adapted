@@ -287,6 +287,37 @@ get_next_tableau(const int M, const std::vector<int> frame, std::vector<int>& ta
 }
 
 int 
+get_init_tableau(const int M, const std::vector<int> frame, std::vector<int>&tableau)
+{
+	//empty tableau
+	tableau.clear();
+	
+
+	int ctr=0;
+	for(int row=0; row<frame.size(); row++)
+	{
+		if(frame[row]==2)
+		{
+			tableau.push_back(ctr);
+			tableau.push_back(ctr);
+			ctr++;
+		}
+		else
+		{
+			tableau.push_back(ctr);
+			ctr++;
+		}
+	}
+
+	if(ctr>=M)
+	{
+		std::cout << "Error. M too small.\n";
+		return 1;
+	}
+
+	return 0;
+}
+int 
 main()
 {
 	using namespace std;
@@ -307,21 +338,7 @@ main()
 
 	std::vector<int> tableau;
 	//initial tableau
-	ctr=0;
-	for(int row=0; row<frame.size(); row++)
-	{
-		if(frame[row]==2)
-		{
-			tableau.push_back(ctr);
-			tableau.push_back(ctr);
-			ctr++;
-		}
-		else
-		{
-			tableau.push_back(ctr);
-			ctr++;
-		}
-	}
+
 
 	ntabs=0;
 
