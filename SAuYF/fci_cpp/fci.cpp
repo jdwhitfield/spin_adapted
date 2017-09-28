@@ -33,17 +33,71 @@
 #include<random>
 #include<chrono>
 #include<algorithm>
-#define EIGEN_USE_LAPACKE
 #include"parser.h"
-#include"ci_matrix.h"
-#include"weyl.h"
 #include"libint_interface.h"
+//#include"ci_matrix.h"
+#include"weyl.h"
 
 
+int 
+main(int argc, char *argv[])
+{
+
+    int M,N;
+    Matrix h2;
+    std::vector<double>  h4;
+    bool debug=false;
+
+    auto start_time=std::chrono::high_resolution_clock::now();
+
+    // ****************************
+    // * Parse commandline inputs *
+    // ****************************
+    if (argc > 1)
+    {	
+	    if(!strcmp(argv[1],"-h"))
+	    {
+		    std::cout << "fci [basis_func] [nuc_field]";
+		    std::cout << "\n\tDefault files are used when called with no parameters.\n\n";
+		    return 0;
+	    }
+    }
+
+    const char* basis_fname=(argc>1) ? argv[1] : "basis_funcs";
+    const char* nuc_fname  =(argc>2) ? argv[2] : "nuc_field";
+
+
+    if(get_integrals(basis_fname, nuc_fname, M, N,  h2, h4)!=0)
+    {
+	    std::cout << "Problem getting integrals\n";
+    }
+
+
+    int D=nchoosek(M,N);
+
+    //here is the basic CI algorithm
+    double* w=ci_eigenvals(M,N,h4,h2,debug);
+
+    auto time_elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now() - start_time);
+    std::cout << "Computing integrals, making matrix and getting eigenvalues took " << time_elapsed.count() 
+              << "s to get eigenvalues.\n";
+
+    std::cout << "\nEigenvalues( "<< D << " ) :\n --------- \n";
+
+    std::cout.precision(10);
+    std::cout << std::scientific;
+
+    for(int i=0; i<D; i++)
+        std::cout << w[i]  << "\n";
+
+
+    return 0;
+}
 
 int
-main(int argc, char *argv[])
+main2(int argc, char *argv[])
 { 
+/*
     using std::chrono::high_resolution_clock;
 
     std::cout.precision(10);
@@ -84,7 +138,6 @@ main(int argc, char *argv[])
     // ****************************
     // * Output files             *
     // ****************************
-    /*
     std::fstream fonebody;
     system("touch ham_ov.dat");
     system("rm ham_ov.dat");
@@ -143,7 +196,7 @@ main(int argc, char *argv[])
 
     fonebody.close();
     ftwobody.close();
-    */
+
 
 
     //FCI matrix dimension
@@ -167,5 +220,6 @@ main(int argc, char *argv[])
     for(int i=0; i<D; i++)
         std::cout << w[i]  << "\n";
 
+    */
     return 0;
 }

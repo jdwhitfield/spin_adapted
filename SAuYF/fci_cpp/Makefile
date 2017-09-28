@@ -10,13 +10,14 @@ OPT_FLAG=  -O3
 CXXFLAGS= -std=c++11 -w
 
 
-INCLUDESLibint	=-I/usr/local/include -I/usr/include/eigen3/Eigen -I/usr/include/eigen3/ -I/usr/local/libint/2.4.0-beta.3/include -I/opt/local/include
-LIBSLibint      =-L/usr/local/lib  -L/usr/local/libint/2.4.0-beta.3/lib -lint2
-LIBSLapack	=-L/opt/local/lib/lapack -llapack  -lblas -llapacke  
+INCLUDESLibint	=-I/usr/local/include -I/usr/local/libint/2.4.0-beta.3/include 
+LIBSLibint      =-L/usr/local/lib  -L/usr/local/libint/2.4.0-beta.3/lib -lint2 
+INCLUDESEig     =-I/usr/local/include/eigen/Eigen -I/usr/local/include/eigen -I/usr/local/include/ -I/usr/include/eigen/Eigen -I/usr/include/eigen3/Eigen -I/usr/include/eigen/Eigen
+LIBSLapack	=-llapack   -llapacke  
 LIBS	        =-lm -lgmp -lgmpxx $(LIBSLapack) $(LIBSLibint)
-INCLUDES        =$(INCLUDESLibint) 
+INCLUDES        =$(INCLUDESLibint)  $(INCLUDESEig)
 
-all: weyl
+all: fci
 	
 
 weyl: weyl.cpp
@@ -29,7 +30,7 @@ minimal.o: minimal.cpp ci_matrix.cpp
 	$(CXX) minimal.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) -c -o minimal.o
 
 test_eigen: test_eigen.cpp
-	g++ -std=c++11 test_eigen.cpp -I/usr/local/include/eigen -llapack -llapacke -o test_eigen
+	g++ -std=c++11 test_eigen.cpp -I/usr/local/include/eigen/Eigen -llapack -llapacke -o test_eigen
 
 fci:fci.o ci_matrix.o parser.o libint_interface.o
 	$(CXX) $(CXXFLAGS) fci.o libint_interface.o ci_matrix.o parser.o $(LIBS) -o fci
@@ -41,7 +42,7 @@ libint_interface.o: libint_interface.cpp
 	$(CXX) libint_interface.cpp $(INCLUDES) -std=c++11 -c -o libint_interface.o
 
 ci_matrix.o: ci_matrix.cpp 
-	$(CXX) ci_matrix.cpp $(CXXFLAGS) $(INCLUDESLibint) -c -o ci_matrix.o
+	$(CXX) ci_matrix.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) -c -o ci_matrix.o
 
 fci.o: fci.cpp ci_matrix.cpp parser.cpp
 	$(CXX) fci.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) -c -o fci.o
