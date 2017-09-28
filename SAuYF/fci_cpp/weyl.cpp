@@ -311,7 +311,7 @@ get_init_tableau(const int M, const std::vector<int> frame, std::vector<int>&tab
 
 	if(ctr>=M)
 	{
-		cout << "Error. M too small.\n";
+		std::cout << "Error. M too small.\n";
 		return 1;
 	}
 
