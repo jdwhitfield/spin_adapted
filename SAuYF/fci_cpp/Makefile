@@ -18,11 +18,15 @@ INCLUDES        =$(INCLUDESLibint)
 
 all: weyl
 	
-weyl.o: weyl.cpp ci_matrix.cpp
-	$(CXX) weyl.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) -c -o weyl.o
 
-weyl:weyl.o 
+weyl: weyl.cpp
 	g++ weyl.cpp -std=c++11 -o weyl; ./weyl > output
+
+minimal: minimal.o
+	$(CXX) minimal.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) minimal.o -o minimal
+
+minimal.o: minimal.cpp ci_matrix.cpp
+	$(CXX) minimal.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) -c -o minimal.o
 
 test_eigen: test_eigen.cpp
 	g++ -std=c++11 test_eigen.cpp -I/usr/local/include/eigen -llapack -llapacke -o test_eigen
