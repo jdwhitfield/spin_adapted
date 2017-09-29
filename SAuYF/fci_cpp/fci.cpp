@@ -33,8 +33,8 @@
 #include<random>
 #include<chrono>
 #include<algorithm>
-#include"parser.h"
-#include"libint_interface.h"
+//#include"parser.h"
+//#include"libint_interface.h"
 //#include"ci_matrix.h"
 #include"weyl.h"
 
@@ -42,17 +42,17 @@
 int 
 main(int argc, char *argv[])
 {
-
-    int M,N;
-    Matrix h2;
-    std::vector<double>  h4;
     bool debug=true;
-
     if(debug)
     {
 	    std::cout.precision(10);
 	    std::cout << std::scientific;
     }
+
+    int M,N;
+    /*
+    Matrix h2;
+    std::vector<double>  h4;
 
     // ****************************
     // * Parse commandline inputs *
@@ -75,10 +75,11 @@ main(int argc, char *argv[])
     {
 	    std::cout << "Problem getting integrals\n";
     }
+    */
 
+    M=4; N=2; 
     std::cout << "M:" << M <<", N:" << N <<"\n";
 
-    int ndets=nchoosek(M,N);
     int multiplicity;
 
     
@@ -86,21 +87,25 @@ main(int argc, char *argv[])
     else        multiplicity=1;//triplet
 
     int nweyl=num_weyl(M/2,N,multiplicity);
-    int D=nchoosek(M,N);
+    //int ndets=nchoosek(M,N);
+    //int D=nchoosek(M,N);
 
     if(debug)
     {
-	    std::cout << "Number of determinants: " << D << std::endl;
 	    std::cout << "Number of Weyl tableau: " << nweyl << std::endl;
+	    //std::cout << "Number of determinants: " << D << std::endl;
     }
+
 
     std::vector<int> frame;
     frame.clear();
     frame.push_back(2);
     //frame.push_back(1);
 
+    std::vector<std::vector<int>> weyl_list;
     std::vector<int> T;
     get_init_tableau(M/2,frame,T);
+    weyl_list.push_back(T);
 
     for(t : T)
 	   std::cout << t << " ";
@@ -108,13 +113,32 @@ main(int argc, char *argv[])
 
     for(int i=0; i<nweyl-1; i++)
     {
+
 	get_next_tableau(M/2,frame,T);
+    	weyl_list.push_back(T);
+
    	for(t : T)
 	   std::cout << t << " ";
         std::cout << "\n";
 	   
     }
 
+    std::cout << "print back Weyl list\n";
+    int ctr=0;
+    for(auto T:weyl_list)
+    {
+	    std::cout << ctr++ << ":" ;
+
+	    for(auto t : T )
+	   	std::cout << t << " ";
+
+	    std::cout << "\n";
+
+    }
+
+    //Eij(0,0,weyl_list[0],weyl_list[0])
+
+	    /*
 
     auto start_time=std::chrono::high_resolution_clock::now();
     //here is the basic CI algorithm
@@ -127,6 +151,7 @@ main(int argc, char *argv[])
     for(int i=0; i<D; i++)
         std::cout << w[i]  << "\n";
 
+	*/
 
     return 0;
 }
