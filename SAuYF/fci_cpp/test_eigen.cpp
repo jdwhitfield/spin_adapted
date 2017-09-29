@@ -3,7 +3,6 @@
 #include<stdio.h>
 #include<lapacke.h>
 #include<fstream>
-#include<Eigen/Eigen>
 #include<stdlib.h>
 #include<iostream>
 #include<assert.h>
@@ -11,7 +10,9 @@
 #include<random>
 #include<chrono>
 #include<algorithm>
-
+#include<lapacke.h>
+#define EIGEN_USE_LAPACK
+#include<Eigen>
 void
 reset_array(int dim, Eigen::MatrixXd matrix, double*& array);
 
@@ -22,25 +23,39 @@ main()
 
     int dim;
     double* matrix_col_major_upper;
-    Eigen::MatrixXd matrix;	
-    bool debug=false;
+    //
 
-    ifstream file("matrix.dat");
+#ifndef BLAH
+    std::cout <<"no blah found\n";
+#endif
+
+    typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+        Matrix;  // import dense, dynamically sized Matrix type from Eigen;
+    Matrix    matrix;	
+    bool debug=true;
+
+    //ifstream file("matrix.dat");
 
     //read the dimension of the matrix in the file
-    file >> dim;
+    // file >> dim;
     
     //declare space to store values
+    
+    dim=4;
     matrix_col_major_upper=new double[dim*(dim+1)/2];
     matrix.resize(dim,dim);
-    
+    double buffer[10]={1.0000000000e+00,6.8479982475e-01,1.9704930179e-01,4.7163882973e-01,
+					 1.0000000000e+00,2.5711892614e-01,6.3545923861e-01,
+							  1.0000000000e+00,6.3415177025e-01,
+								           1.0000000000e+00};
+
 
     int ctr=0;
     double trace;
     for(int i=0; i < dim; i++)         //loop conventions for upper tri part of 
 	    for(int j=i; j < dim; j++) //a matrix stored in col-major form
 	    {
-    		file >> matrix_col_major_upper[ctr];
+    		matrix_col_major_upper[ctr]=buffer[ctr];
 		if(debug)
 			cout << "read "<< ctr << " as " << matrix_col_major_upper[ctr] << " into (" << i << ","<<j<< ") with ";
 		matrix(i,j)=matrix_col_major_upper[ctr];
@@ -55,7 +70,6 @@ main()
 	    }
 
 
-    file.close();
     //done reading file
 
     //confirm file was read correctly
