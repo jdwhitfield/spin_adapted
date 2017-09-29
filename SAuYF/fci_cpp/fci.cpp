@@ -46,9 +46,13 @@ main(int argc, char *argv[])
     int M,N;
     Matrix h2;
     std::vector<double>  h4;
-    bool debug=false;
+    bool debug=true;
 
-    auto start_time=std::chrono::high_resolution_clock::now();
+    if(debug)
+    {
+	    std::cout.precision(10);
+	    std::cout << std::scientific;
+    }
 
     // ****************************
     // * Parse commandline inputs *
@@ -72,21 +76,54 @@ main(int argc, char *argv[])
 	    std::cout << "Problem getting integrals\n";
     }
 
+    std::cout << "M:" << M <<", N:" << N <<"\n";
 
+    int ndets=nchoosek(M,N);
+    int multiplicity;
+
+    
+    if( N % 2 ) multiplicity=2;//doublet
+    else        multiplicity=1;//triplet
+
+    int nweyl=num_weyl(M/2,N,multiplicity);
     int D=nchoosek(M,N);
 
-    //here is the basic CI algorithm
-    double* w=ci_eigenvals(M,N,h4,h2,debug);
+    if(debug)
+    {
+	    std::cout << "Number of determinants: " << D << std::endl;
+	    std::cout << "Number of Weyl tableau: " << nweyl << std::endl;
+    }
 
-    auto time_elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now() - start_time);
+    std::vector<int> frame;
+    frame.clear();
+    frame.push_back(2);
+    //frame.push_back(1);
+
+    std::vector<int> T;
+    get_init_tableau(M/2,frame,T);
+
+    for(t : T)
+	   std::cout << t << " ";
+    std::cout << "\n";
+
+    for(int i=0; i<nweyl-1; i++)
+    {
+	get_next_tableau(M/2,frame,T);
+   	for(t : T)
+	   std::cout << t << " ";
+        std::cout << "\n";
+	   
+    }
+
+
+    auto start_time=std::chrono::high_resolution_clock::now();
+    //here is the basic CI algorithm
+    double* w=ci_eigenvals(M,N,h4,h2,false);
+    auto time_elapsed = std::chrono::duration_cast<std::chrono::duration<double>>
+	                 (std::chrono::high_resolution_clock::now() - start_time);
     std::cout << "Computing integrals, making matrix and getting eigenvalues took " << time_elapsed.count() 
               << "s to get eigenvalues.\n";
-
     std::cout << "\nEigenvalues( "<< D << " ) :\n --------- \n";
-
-    std::cout.precision(10);
-    std::cout << std::scientific;
-
     for(int i=0; i<D; i++)
         std::cout << w[i]  << "\n";
 
