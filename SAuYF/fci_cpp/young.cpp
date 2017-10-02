@@ -23,7 +23,7 @@ print_perm(perm_a P)
 }
 
 perm_a
-eye(int n)
+perm_I(int n)
 {
 	//unit permutation
 	perm_a P;
@@ -39,21 +39,32 @@ perm_a
 perm_multiply(const perm_a& P1, const perm_a& P2)          
 {
 
+	bool debug=false;
 	perm_a result;
 	std::vector<int> p_result;
 
 	p_result.clear();
-	if(P1.n != P2.n)
+	if(P1.perm.size() != P2.perm.size())
 	{
 		std::cout << "Error in perm_multiply, perms must be same size" 
 			  << std::endl;
 		return result;
 	}
 
-	p_result.resize(P1.n);
+	p_result.resize(P1.perm.size());
 
-	for(int j=0; j<P1.n; j++)
+	for(int j=0; j<P1.perm.size(); j++)
+	{
 		p_result[j]=P1.perm[P2.perm[j]];
+		if(debug)
+		{
+			std::cout << "p_result element " << j << " "
+				  << p_result[j] ;
+			std::cout << " (young::perm_multiply)\n";
+		}
+	}
+
+
 
 	result.coeff=P1.coeff*P2.coeff;
 	result.perm=p_result;
@@ -65,13 +76,29 @@ perm_multiply(const perm_a& P1, const perm_a& P2)
 std::vector<perm_a> 
 multiply(std::vector<perm_a> A, std::vector<perm_a> B)
 {
+	bool debug=false;
 	std::vector<perm_a>  product;
 	for( auto p : A )
 		for( auto q : B)
-			product.push_back(perm_multiply(p,q));
+		{
+			perm_a pq=perm_multiply(p,q);
+			if(debug)
+			{
+				std::cout << "pq (young::multiply)\n";
+				print_perm(pq);
+			}
+			product.push_back(pq);
+		}
 
 	//simplify using std::algorithm
 	//i.e. combine like terms 
+	
+	if(debug)
+	{
+		std::cout << "product (young::multiply)\n";
+		for( perm_a p : product)
+			print_perm(p);
+	}
 	
 	return product;
 }
@@ -79,13 +106,16 @@ multiply(std::vector<perm_a> A, std::vector<perm_a> B)
 std::vector<perm_a>
 Srow(std::vector<int> frame,std::vector<int> tableau)
 {
-	bool debug=true;
+	bool debug=false;
 	if(debug) std::cout << "here (young::Srow)\n";
 	int N=0; //number of electrons
 	for(int r=0; r<frame.size(); r++)
 		N=N+frame[r];
 	
+	//initialize S as I
 	std::vector<perm_a> S;
+	S.clear(); S.push_back(perm_I(N));
+
 	std::vector<perm_a> Sr;
 	for(int row=0; row<frame.size(); row++)
 	{
@@ -108,25 +138,40 @@ Srow(std::vector<int> frame,std::vector<int> tableau)
 
 		P.coeff=1;
 
-		Sr.push_back(eye(N));
+		Sr.push_back(perm_I(N));
 		Sr.push_back(P);
 		
-		if(debug) std::cout << "S_before (young::Srow)\n";
+		if(debug)
+		{ 
+			std::cout << "Sr (young::Srow)\n";
+			for( perm_a p : Sr)
+				print_perm(p);
+			std::cout << "\n";
+			std::cout << "S  (young::Srow)\n";
+			for( perm_a p : S)
+				print_perm(p);
+			std::cout << "\n";
 
+		}
 
 		S=multiply(S,Sr);
-		if(debug) std::cout << "S_before (young::Srow)\n";
+		if(debug) 
+		{
+			std::cout << "after multiply(S,Sr) (young::Srow)\n";
+			for( perm_a p : S)
+				print_perm(p);
+			std::cout << "\n";
+		}
 	}
 	return S;
 }
 
 int Ey(std::vector<int> frame_rows,std::vector<int> yT)
 {
-	std::cout << "here (young::Ey)\n";
 	std::vector<perm_a> S=Srow(frame_rows,yT);
+	std::cout << "Symmetrizer of rows:\n";
 	for(int k=0; k<S.size(); k++)
 	{
-		std::cout << "k : " << k << "\n";
 		print_perm(S[k]);
 	}
 	return 0;
@@ -138,7 +183,6 @@ main()
 	int n=3;
 
 	perm_a P12;
-	P12.n=n;
 	P12.perm={1,0,2};
 	P12.coeff=.5;
 
@@ -146,7 +190,6 @@ main()
 	//print_perm(P12);
 
 	perm_a id;
-	id.n=n;
 	id.perm={0,1,2};
 	id.coeff=-1;
 
@@ -173,6 +216,8 @@ main()
 	young_tableau.push_back(2);
 	young_tableau.push_back(3);
 	young_tableau.push_back(4);
+
+	print_tableau(young_tableau,frame_rows);
 		
 
 	Ey(frame_rows,young_tableau);
