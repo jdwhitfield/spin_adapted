@@ -1,7 +1,12 @@
 // Functions for the symmetric group approach
 #include<iostream>
 #include<vector>
+#include<algorithm>
+#include<Eigen>
 #include"weyl.h"
+
+typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+        Matrix;  // import dense, dynamically sized Matrix type from Eigen;
 
 class perm_a
 {
@@ -11,6 +16,12 @@ class perm_a
 		int    n=0;
 	// TODO: overload the multiply operator
 };
+
+//test functions
+int                   test_symmetrizer();
+//symmetrizer
+std::vector<perm_a>   Srow(std::vector<int> frame,std::vector<int> tableau);
+
 
 void
 print_perm(perm_a P)
@@ -103,6 +114,113 @@ multiply(std::vector<perm_a> A, std::vector<perm_a> B)
 	return product;
 }
 
+Matrix
+perm_matrix(std::vector<int> perm)
+{
+	int n = perm.size();
+	Matrix P;
+	P.resize(n,n);
+	for(int i=0; i<n; i++)
+	{
+		for(int j=0; j<n; j++)
+		{
+			if(j==perm[i])
+				P(i,j)=1;
+			else
+				P(i,j)=0;
+		}
+	}
+	return P;
+}
+int 
+sgn(std::vector<int> perm)
+{
+	return perm_matrix(perm).determinant();
+}
+
+int Ey(std::vector<int> frame_rows,std::vector<int> yT)
+{
+	
+	return 0;
+}
+
+
+int
+main()
+{
+	
+	int n=3;
+	std::vector<int> perm={0,1,2};
+	do 
+	{
+		std::cout << sgn(perm) <<"  ";
+		for(int pk : perm)
+			std::cout << pk << " ";
+		std::cout << "\n";
+
+		std::cout << perm_matrix(perm);
+		std::cout << "\n";
+
+
+	}while(std::next_permutation(perm.begin(),perm.end()));
+
+
+	/*
+	perm_a P12;
+	P12.perm={1,0,2};
+	P12.coeff=.5;
+
+	//std::cout << ".5 * P12\n";
+	//print_perm(P12);
+
+	perm_a id;
+	id.perm={0,1,2};
+	id.coeff=-1;
+
+	//std::cout << "Id\n";
+	//print_perm(id);
+
+	std::vector<perm_a> pvec;
+	pvec.clear();
+	pvec.push_back(id);
+
+
+	//print_perm(perm_multiply(P12,P12));
+	*/
+	
+}
+
+int
+test_symmetrizer()
+{
+
+	std::vector<int> frame_rows;
+	frame_rows.clear();
+	frame_rows.push_back(2);
+	frame_rows.push_back(2);
+	frame_rows.push_back(1);
+
+	std::vector<int> young_tableau;
+	young_tableau.clear();
+	young_tableau.push_back(0);
+	young_tableau.push_back(1);
+	young_tableau.push_back(2);
+	young_tableau.push_back(3);
+	young_tableau.push_back(4);
+
+	print_tableau(frame_rows,young_tableau);
+
+	std::vector<perm_a> S=Srow(frame_rows,young_tableau);
+	std::cout << "Symmetrizer of rows:\n";
+	for(int k=0; k<S.size(); k++)
+	{
+		print_perm(S[k]);
+	}
+
+	
+	return 0;
+}
+
 std::vector<perm_a>
 Srow(std::vector<int> frame,std::vector<int> tableau)
 {
@@ -165,63 +283,3 @@ Srow(std::vector<int> frame,std::vector<int> tableau)
 	}
 	return S;
 }
-
-int Ey(std::vector<int> frame_rows,std::vector<int> yT)
-{
-	std::vector<perm_a> S=Srow(frame_rows,yT);
-	std::cout << "Symmetrizer of rows:\n";
-	for(int k=0; k<S.size(); k++)
-	{
-		print_perm(S[k]);
-	}
-	return 0;
-}
-
-int
-main()
-{
-	int n=3;
-
-	perm_a P12;
-	P12.perm={1,0,2};
-	P12.coeff=.5;
-
-	//std::cout << ".5 * P12\n";
-	//print_perm(P12);
-
-	perm_a id;
-	id.perm={0,1,2};
-	id.coeff=-1;
-
-	//std::cout << "Id\n";
-	//print_perm(id);
-
-	std::vector<perm_a> pvec;
-	pvec.clear();
-	pvec.push_back(id);
-
-
-	//print_perm(perm_multiply(P12,P12));
-
-	std::vector<int> frame_rows;
-	frame_rows.clear();
-	frame_rows.push_back(2);
-	frame_rows.push_back(2);
-	frame_rows.push_back(1);
-
-	std::vector<int> young_tableau;
-	young_tableau.clear();
-	young_tableau.push_back(0);
-	young_tableau.push_back(1);
-	young_tableau.push_back(2);
-	young_tableau.push_back(3);
-	young_tableau.push_back(4);
-
-	print_tableau(young_tableau,frame_rows);
-		
-
-	Ey(frame_rows,young_tableau);
-	
-	return 0;
-}
-
