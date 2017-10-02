@@ -7,7 +7,7 @@ class perm_a
 {
 	public:
 		std::vector<int> perm;
-		double coeff=0;
+		double coeff=1;
 		int    n=0;
 	// TODO: overload the multiply operator
 };
@@ -76,13 +76,15 @@ multiply(std::vector<perm_a> A, std::vector<perm_a> B)
 	return product;
 }
 
-int
+std::vector<perm_a>
 Srow(std::vector<int> frame,std::vector<int> tableau)
 {
-	bool debug=false;
+	bool debug=true;
+	if(debug) std::cout << "here (young::Srow)\n";
 	int N=0; //number of electrons
 	for(int r=0; r<frame.size(); r++)
 		N=N+frame[r];
+	
 	std::vector<perm_a> S;
 	std::vector<perm_a> Sr;
 	for(int row=0; row<frame.size(); row++)
@@ -108,16 +110,28 @@ Srow(std::vector<int> frame,std::vector<int> tableau)
 
 		Sr.push_back(eye(N));
 		Sr.push_back(P);
+		
+		if(debug) std::cout << "S_before (young::Srow)\n";
 
+
+		S=multiply(S,Sr);
+		if(debug) std::cout << "S_before (young::Srow)\n";
 	}
-	S=multiply(S,Sr);
-	return 0;
+	return S;
 }
+
 int Ey(std::vector<int> frame_rows,std::vector<int> yT)
 {
-	// S=Srow(frame)
+	std::cout << "here (young::Ey)\n";
+	std::vector<perm_a> S=Srow(frame_rows,yT);
+	for(int k=0; k<S.size(); k++)
+	{
+		std::cout << "k : " << k << "\n";
+		print_perm(S[k]);
+	}
 	return 0;
 }
+
 int
 main()
 {
@@ -128,24 +142,40 @@ main()
 	P12.perm={1,0,2};
 	P12.coeff=.5;
 
-	std::cout << ".5 * P12\n";
-	print_perm(P12);
+	//std::cout << ".5 * P12\n";
+	//print_perm(P12);
 
 	perm_a id;
 	id.n=n;
 	id.perm={0,1,2};
 	id.coeff=-1;
 
-	std::cout << "Id\n";
-	print_perm(id);
+	//std::cout << "Id\n";
+	//print_perm(id);
 
 	std::vector<perm_a> pvec;
 	pvec.clear();
 	pvec.push_back(id);
 
 
-	print_perm(perm_multiply(P12,P12));
+	//print_perm(perm_multiply(P12,P12));
+
+	std::vector<int> frame_rows;
+	frame_rows.clear();
+	frame_rows.push_back(2);
+	frame_rows.push_back(2);
+	frame_rows.push_back(1);
+
+	std::vector<int> young_tableau;
+	young_tableau.clear();
+	young_tableau.push_back(0);
+	young_tableau.push_back(1);
+	young_tableau.push_back(2);
+	young_tableau.push_back(3);
+	young_tableau.push_back(4);
 		
+
+	Ey(frame_rows,young_tableau);
 	
 	return 0;
 }
