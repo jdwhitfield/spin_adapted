@@ -1,7 +1,6 @@
 //Complile command
 //g++ -std=c++11 test_eigen.cpp -I/usr/local/include/eigen -llapack -llapacke -o test_eigen
 #include<stdio.h>
-#include<lapacke.h>
 #include<fstream>
 #include<stdlib.h>
 #include<iostream>
