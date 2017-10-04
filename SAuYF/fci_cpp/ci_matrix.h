@@ -69,6 +69,11 @@ ci_eigenvals(int M, int N, std::vector<double> MOInts, Matrix h2, int DEBUG=0);
 int 
 spin2spatial(int);
 
+//Hall-Robinson formula
+int
+num_weyl(int M, int N, int ms);
+
+
 //based on my Matlab implementations
 int 
 nchoosek(double n, double k);

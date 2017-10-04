@@ -35,7 +35,7 @@ int
 get_integrals(const char* basis_fname, const char* nuc_fname, int& M, int& N, Matrix& h2, std::vector<double>& h4)
 {
 
-    bool debug=true; 
+    bool debug=false; 
     bool CANONICAL=true;// if false use symmetric orthogonalization
 
     //parse files
@@ -86,19 +86,8 @@ get_integrals(const char* basis_fname, const char* nuc_fname, int& M, int& N, Ma
         //C = C(W) = XW for any WW^\dag =\id
         //
 
-
-	    
-	S=(S+S.transpose())*.5;
-	std::cout << S << "\n";
-	std::cout << S.cols() << "\n";
-	std::cout << S.rows() << "\n";
-
         Eigen::SelfAdjointEigenSolver<Matrix> es(S);
-
-	std::cout << "1" << "\n";
-	
         Matrix s=Matrix(es.eigenvalues());
-	std::cout << "2" << "\n";
         //check which eigenvalues are non-trivial to avoid linear dependence
         //then compute s^{-1/2}
         Matrix shalf;

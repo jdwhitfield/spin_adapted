@@ -43,11 +43,11 @@
 
 using std::vector;
 
-/// fac[k] = k!
-static constexpr std::array<int64_t,21> fac = {{1L, 1L, 2L, 6L, 24L, 120L, 720L, 5040L, 40320L, 362880L, 3628800L, 39916800L,
-                                                    479001600L, 6227020800L, 87178291200L, 1307674368000L, 20922789888000L,
-                                                    355687428096000L, 6402373705728000L, 121645100408832000L,
-                                                    2432902008176640000L}};
+/// fac[k] = k!, for k < 21
+static constexpr std::array<int64_t,21> fac = {{1L, 1L, 2L, 6L, 24L, 120L, 720L, 5040L, 40320L, 362880L, 3628800L, 39916800L, // 12
+                                                    479001600L, 6227020800L, 87178291200L, 1307674368000L, 20922789888000L, //5
+                                                    355687428096000L, 6402373705728000L, 121645100408832000L, // 3
+                                                    2432902008176640000L}}; // 1 
  
 size_t max_nprim(const std::vector<Shell>& shells);
 int max_l(const std::vector<Shell>& shells);
@@ -162,7 +162,7 @@ SlaterDiffs(const vector<int>& detRef, const vector<int>& detK,
             //save orb 
             occ.push_back(occ_orb);
 
-            if(left_occupancy%2) //if left_occpancy is odd...
+            if(left_occupancy%2) //if left_occupancy is odd...
                 //flip phase
                 phase*=-1;
         }
@@ -302,7 +302,7 @@ double*
 ci_eigenvals(int M, int N, std::vector<double> MOInts, Matrix h2, int DEBUG)
 {
 
-    //LAPACK diagonalization vars
+    //LAPACK routine vars
     int dim=nchoosek(M,N);
     double* eigenvalues= new double[dim];  
     double* eigenvectors=new double[dim*dim];
@@ -377,6 +377,107 @@ ci_eigenvals(int M, int N, std::vector<double> MOInts, Matrix h2, int DEBUG)
     return eigenvalues;
 }
 
+/*
+int
+num_weyl(int M, int N, int ms)
+{
+	// Hall-Robinson formula
+	// See slide 21 of generalized_operators.pdf
+	
+	double S=(ms -1)/2.0;
+
+	
+        auto a=(ms)*1.0/(M+1.0);
+
+	auto k1= .5*N+S+1;
+        auto b=nchoosek(M+1,k1);
+        
+	auto k2= .5*N-S;
+        auto c=nchoosek(M+1,k2);
+
+        return  (a*b*c);	
+}
+*/
+
+
+
+Matrix
+uga_matrix(int M, int N, int multiplicity, std::vector<double> MOInts, Matrix h2)
+{
+    // don't support M > 21  
+    if(M>21) std::cout << "warning M> 16 is not advisable\n";
+    
+	
+    // 2S+1= g, g-1=2S, S=(g-1)/2
+    double S=(multiplicity-1)/2;
+
+    // S= (g-1) / 2
+
+    //number of spin functions for M, N, S= 
+    int    D=nchoosek(M,N);
+    int    diffs;
+    int    reordering_phase;       // reordering phase
+    double elem=0;
+    vector<int> virt; //orbs in Ldet not in Rdet
+    vector<int> occ;  //orbs in Rdet not in Ldet
+
+    Matrix H(D,D);
+    H.fill(0);
+
+    
+    for(int Lidx=1; Lidx<D+1; Lidx++)
+    {
+        //left determinant
+        auto detL=CboI(Lidx,M,N);
+
+        /*
+        printf("\ndet %i: ",Lidx);
+        for( auto l : detL)
+            printf("%i ",l);
+        printf("\n ");
+        */
+
+        for(int Ridx=Lidx; Ridx< D+1; Ridx++)
+        {
+            //left determinant
+            auto detR=CboI(Ridx,M,N);
+
+            //number of differences, needed to evaluate Slater-Condon rules
+            diffs=SlaterDiffs(detL,detR,virt,occ,reordering_phase);
+
+            elem=0;
+
+            switch(diffs)
+            {
+                case 0:
+                    elem=  zero_excitation(detL, detR, virt, occ, MOInts, h2);
+                    break;
+                case 1:
+                    elem=single_excitation(detL, detR, virt, occ, MOInts, h2);
+                    break;
+                case 2:
+                    elem=double_excitation(detL, detR, virt, occ, MOInts, h2);
+                    break;
+
+                default:
+                    //any other number of differences, we can just go to the next
+                    continue;
+            }
+
+            if(std::abs(elem)<1e-13)
+                elem=0;
+            
+            //include reordering phase
+            elem*=reordering_phase;
+
+            H(Lidx-1,Ridx-1)=elem;
+            if(Lidx!=Ridx)
+                H(Ridx-1,Lidx-1)=elem;
+        }
+    }
+    return H;
+}
+
 Matrix
 ci_matrix(int M, int N, std::vector<double> MOInts, Matrix h2)
 {
@@ -444,6 +545,7 @@ ci_matrix(int M, int N, std::vector<double> MOInts, Matrix h2)
 }
 
 
+// Chemist's notation: [ij|kl]
 int 
 term4(int i,int j,int k,int l)
 {
