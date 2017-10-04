@@ -390,19 +390,62 @@ isvalid_young(std::vector<int> frame_rows, std::vector<int> tableau)
 	
 	return true;
 }
-int
-main()
+int 
+get_next_young_tableau(const std::vector<int> frame, std::vector<int>& tableau)
 {
+	int ctr=0;
+	while(1)
+	{
 	
+		std::next_permutation(tableau.begin(),tableau.end());
+		if(isvalid_young(frame,tableau))
+			return 0;
 
+		ctr++;
+		if(ctr>1000)	
+			break;
+	}
+	std::cout<<"warning: over 1000 permutations rejected (get_next_young_tableau)\n";
+	return 1;
+
+}
+
+
+int
+test_young_tableau_generation()
+{
+	//test the computation of irreducible representation dimensions
+	std::cout << "[21] -> " <<  num_young(3,2);
+	std::cout << "[221] -> "  <<  num_young(5,2);
+	std::cout << "[3] -> "  <<  num_young(3,2*1.5+1);
+	
+	//test the generation of young tableau in two ways for [221] young frame.
 	std::vector<int> Yrows;
 	Yrows.push_back(2);
 	Yrows.push_back(2);
 	Yrows.push_back(1);
 
+	// 1 2 
+	// 3 4
+	// 5
 	std::vector<int> ytab={0,1,2,3,4};
+
+	std::cout << "[221] -> N=" <<  num_young(5,2) << "\n";
+
+	for(int i=0; i<num_young(5,2); i++)
+	{
+		std::cout << i << ": ";
+		for(auto item : ytab)
+			std::cout << item << " ";
+		std::cout << "\n";
+		get_next_young_tableau(Yrows,ytab);
+
+	}
+
+	std::cout << "\n";
 	int ctr=0;
-	for(int k=0; k<120; k++)
+
+	for(int k=0; k<200; k++)
 	{
 
 		if(isvalid_young(Yrows,ytab))
@@ -428,79 +471,15 @@ main()
 			}
 		}
 
-		next_permutation(ytab.begin(),ytab.end());
+		if(next_permutation(ytab.begin(),ytab.end()))
+			continue;
+		else
+			break;
 
 	}
 
 
-	return 0;
-
-	/*
-	std::cout << "[21] -> " <<  num_young(3,2);
-	std::cout << "[221] -> "  <<  num_young(5,2);
-	std::cout << "[3] -> "  <<  num_young(3,2*1.5+1);
-	*/
-	/*
-	int N=3;
-
-	std::vector<int> ytab;
-	std::vector<int> frows;
-	frows.push_back(2);
-	frows.push_back(1);
-	get_init_ytableau(N,frows,ytab);
-
-	print_tableau(frows,ytab);
-
-	get_next_ytableau(frows,ytab);
-
-	print_tableau(frows,ytab);
-
-	get_next_ytableau(frows,ytab);
-
-	print_tableau(frows,ytab);
-*/
-	/*
-	std::vector<int> perm={0,1,2};
-	do 
-	{
-		std::cout << sgn(perm) <<"  ";
-		for(int pk : perm)
-			std::cout << pk << " ";
-		std::cout << "\n";
-
-		std::cout << perm_matrix(perm);
-		std::cout << "\n";
-
-
-	}while(std::next_permutation(perm.begin(),perm.end()));
-	*/
-
-
-	/*
-	perm_a P12;
-	P12.perm={1,0,2};
-	P12.coeff=.5;
-
-	//std::cout << ".5 * P12\n";
-	//print_perm(P12);
-
-	perm_a id;
-	id.perm={0,1,2};
-	id.coeff=-1;
-
-	//std::cout << "Id\n";
-	//print_perm(id);
-
-	std::vector<perm_a> pvec;
-	pvec.clear();
-	pvec.push_back(id);
-
-
-	//print_perm(perm_multiply(P12,P12));
-	*/
-	
 }
-
 int
 test_symmetrizer()
 {
@@ -593,4 +572,185 @@ Srow(std::vector<int> frame,std::vector<int> tableau)
 		}
 	}
 	return S;
+}
+
+std::vector<perm_a>
+Acol(std::vector<int> frame,std::vector<int> tableau)
+{
+	bool debug=false;
+	if(debug) std::cout << "here (young::Acol)\n";
+	int N=0; //number of electrons
+	for(int r=0; r<frame.size(); r++)
+		N=N+frame[r];
+	
+	//initialize S as I
+	std::vector<perm_a> A;
+	A.clear(); A.push_back(perm_I(N));
+
+	//get col information
+	int n_col[2];
+	n_col[0]=frame.size();
+	n_col[1]=N-n_col[0];
+	//total number of boxes = N = n_column_1 + n_column_2
+
+	std::vector<perm_a> Ac;
+	for(int c=0; c<2; c++)
+	{
+
+		Ac.clear();
+
+		if(n_col[c]<2) 
+			// nothing to do if the col length is 1 or 0
+			continue;
+
+		//get column
+		std::vector<int> col_perm;
+		col_perm.clear();
+		for(int row=0; row < n_col[c]; row++)
+		{
+			col_perm.push_back(tableau[tableau_pos(row,c,frame)]);
+		}
+		std::vector<int> col_sorted=col_perm;
+		std::sort (col_sorted.begin(),col_sorted.end());
+
+		//make permutations over the column, keep items not in row in place
+		perm_a P;
+		P.perm.clear();
+		std::cout << "(young::Acol)\n";
+		int ctr=0;
+		do
+		{
+			P.perm.clear();
+			ctr=0;
+			for(int k=0; k< N; k++)
+			{
+				if(col_sorted[ctr]==k)
+				{
+					//pull from permutation
+					
+					P.perm.push_back(col_perm[ctr]);
+					//advance ctr
+					ctr++;
+				}
+				else    //else just insert in place
+					P.perm.push_back(k);
+			}
+
+			P.coeff=sgn(P.perm);
+
+			Ac.push_back(P);
+
+		}while( std::next_permutation(col_perm.begin(), col_perm.end()) );
+		
+		if(debug)
+		{ 
+			std::cout << "Ac (young::Acol)\n";
+			for( perm_a p : Ac)
+				print_perm(p);
+			std::cout << "\n";
+			std::cout << "A  (young::Acol)\n";
+			for( perm_a p : A)
+				print_perm(p);
+			std::cout << "\n";
+
+		}
+
+		A=multiply(A,Ac);
+		if(debug) 
+		{
+			std::cout << "after multiply(A,Ac) (young::Srow)\n";
+			for( perm_a p : A)
+				print_perm(p);
+			std::cout << "\n";
+		}
+		
+	}
+	return A;
+}
+
+int
+main()
+{
+	std::vector<int> F;
+	std::vector<int> T;
+	F.clear();
+	F.push_back(2);
+	F.push_back(2);
+	F.push_back(1);
+
+	T.clear();
+	T.push_back(0);
+	T.push_back(1);
+	T.push_back(2);
+	T.push_back(3);
+	T.push_back(4);
+
+	
+	Acol(F,T);
+	
+
+
+	return 0;
+
+	/*
+*/
+	/*
+	int N=3;
+
+	std::vector<int> ytab;
+	std::vector<int> frows;
+	frows.push_back(2);
+	frows.push_back(1);
+	get_init_ytableau(N,frows,ytab);
+
+	print_tableau(frows,ytab);
+
+	get_next_ytableau(frows,ytab);
+
+	print_tableau(frows,ytab);
+
+	get_next_ytableau(frows,ytab);
+
+	print_tableau(frows,ytab);
+*/
+	/*
+	std::vector<int> perm={0,1,2};
+	do 
+	{
+		std::cout << sgn(perm) <<"  ";
+		for(int pk : perm)
+			std::cout << pk << " ";
+		std::cout << "\n";
+
+		std::cout << perm_matrix(perm);
+		std::cout << "\n";
+
+
+	}while(std::next_permutation(perm.begin(),perm.end()));
+	*/
+
+
+	/*
+	perm_a P12;
+	P12.perm={1,0,2};
+	P12.coeff=.5;
+
+	//std::cout << ".5 * P12\n";
+	//print_perm(P12);
+
+	perm_a id;
+	id.perm={0,1,2};
+	id.coeff=-1;
+
+	//std::cout << "Id\n";
+	//print_perm(id);
+
+	std::vector<perm_a> pvec;
+	pvec.clear();
+	pvec.push_back(id);
+
+
+	//print_perm(perm_multiply(P12,P12));
+	*/
+	
 }
