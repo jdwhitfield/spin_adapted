@@ -14,7 +14,9 @@
 #ifndef PARSER_LIB
 #define PARSER_LIB
 
+
 // Eigen matrix algebra library
+#define EIGEN_USE_LAPACKE
 #include <Eigen>
 // Libint Gaussian integrals library
 #include <libint2.hpp>

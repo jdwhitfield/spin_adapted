@@ -86,20 +86,8 @@ get_integrals(const char* basis_fname, const char* nuc_fname, int& M, int& N, Ma
         //C = C(W) = XW for any WW^\dag =\id
         //
 
-
-	    
-	std::cout << S << "\n";
-	std::cout << S.cols() << "\n";
-	std::cout << S.rows() << "\n\n";
-	std::cout << S.data   << "\n";
-
-        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(S);
-        if(eigensolver.info() != Eigen::Success) abort();
-
-	std::cout << "1" << "\n";
-	
-        Matrix s=Matrix(eigensolver.eigenvalues());
-	std::cout << "2" << "\n";
+        Eigen::SelfAdjointEigenSolver<Matrix> es(S);
+        Matrix s=Matrix(es.eigenvalues());
         //check which eigenvalues are non-trivial to avoid linear dependence
         //then compute s^{-1/2}
         Matrix shalf;
@@ -120,9 +108,9 @@ get_integrals(const char* basis_fname, const char* nuc_fname, int& M, int& N, Ma
       
         Matrix C;
         if(CANONICAL)  //if canonical W=\id
-            C=Matrix(eigensolver.eigenvectors()*shalf);
+            C=Matrix(es.eigenvectors()*shalf);
         else  	       //if symmetric W=U^+
-            C=Matrix(eigensolver.eigenvectors()*shalf*eigensolver.eigenvectors().adjoint());
+            C=Matrix(es.eigenvectors()*shalf*es.eigenvectors().adjoint());
 
 	if(debug) //time the transformations
 		start_time = std::chrono::high_resolution_clock::now();

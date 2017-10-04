@@ -41,9 +41,10 @@
 #include<vector>
 // Eigen matrix algebra library
 //#define EIGEN_USE_BLAS
-//#define EIGEN_USE_LAPACKE
-#include<Eigen/Eigenvalues> //<eigen3/Eigen/Dense>
-#include<Eigen/Dense> //<eigen3/Eigen/Dense>
+#define EIGEN_USE_LAPACKE
+#include<Eigen> 
+//<eigen3/Eigen/Dense>
+//#include<Eigen/Dense> //<eigen3/Eigen/Dense>
 // Libint Gaussian integrals library
 #include <libint2.hpp>
 

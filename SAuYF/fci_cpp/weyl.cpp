@@ -318,7 +318,7 @@ get_init_tableau(const int M, const std::vector<int> frame, std::vector<int>&tab
 	return 0;
 }
 int 
-main()
+alt_main()
 {
 	using namespace std;
 
