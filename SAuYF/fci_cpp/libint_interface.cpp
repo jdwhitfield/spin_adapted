@@ -35,7 +35,7 @@ int
 get_integrals(const char* basis_fname, const char* nuc_fname, int& M, int& N, Matrix& h2, std::vector<double>& h4)
 {
 
-    bool debug=true; 
+    bool debug=false; 
     bool CANONICAL=true;// if false use symmetric orthogonalization
 
     //parse files

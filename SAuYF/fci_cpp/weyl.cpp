@@ -7,6 +7,7 @@
 #include<random>
 #include<chrono>
 #include<algorithm>
+#include"weyl.h"
 
 //
 /// fac[k] = k!
@@ -21,6 +22,9 @@ static constexpr std::array<int64_t,21> fac = {{1L, 1L, 2L, 6L, 24L, 120L, 720L,
 int
 nchoosek(int M,int N)
 {
+	//don't throw an error just return 0
+	if(N<0) return 0;
+
 	return fac[M]/(fac[M-N]*fac[N]);
 }
 
@@ -38,45 +42,40 @@ num_weyl(int M, int N, int ms)
 	//compute S based on ms=2S+1
 	double S=(ms -1)/2.0;
 
-	/*
-	std::cout << "M: " << M << "\n";
-	std::cout << "N: " << N << "\n";
-	std::cout << "S: " << S << "\n";
-	*/ 
-	
-        auto a=(ms)*1.0/(M+1.0);
-        /*
-	std::cout << "2S+1/M+1="<<ms <<"/"<<M+1.0 << ": "<< a << "\n ";
-        */
 
-	auto k1= .5*N+S+1;
+        auto a=(ms)*1.0/(M+1.0);
+
+       	auto k1= .5*N+S+1;
         auto b=nchoosek(M+1,k1);
-	/*
-	std::cout << "nchoosek(M+1,N/2+S+1)=nchoosek(" 
-		  << M+1 << "," << k1 << "): "<<b << "\n ";
-        */
         
 	auto k2= .5*N-S;
         auto c=nchoosek(M+1,k2);
-	/*
-	std::cout << "nchoosek(M+1,N/2-S)=nchoosek(" 
-		  << M+1 << "," << k1 << "): "<<c << "\n ";
-         */
 
-
-return  (a*b*c);	
+ 	return  (a*b*c);	
 }
 
-
-
-
 void
-print(const std::vector<int> tableau, const std::vector<int> frame)
+print_tableau(const std::vector<int> frame,const std::vector<int> tableau)
 {
 	//print tableau
 	for(auto c : tableau)
 	   std::cout << c <<" ";
+
+
+	int ctr=0;
+	std::cout << "= / ";
+	for(int rowlen : frame)
+	{
+		for(int r=0; r < rowlen; r++)
+		{
+		   std::cout << tableau[ctr] <<" ";
+		   ctr++;
+		}
+		std::cout << "/ ";
+
+	}
 	std::cout << std::endl;
+
 }
 
 void
@@ -152,6 +151,15 @@ row_col_to_pos(int& pos, const std::vector<int> frame, const int row, const int 
 	pos=pos+col;
 
 	return true;
+}
+
+
+int
+tableau_pos(int row, int col, std::vector<int> frame_rows)
+{
+	int pos;
+	row_col_to_pos(pos,frame_rows,row,col);
+	return pos;
 }
 
 int
@@ -311,7 +319,10 @@ get_init_tableau(const int M, const std::vector<int> frame, std::vector<int>&tab
 
 	if(ctr>=M)
 	{
-		std::cout << "Error. M too small.\n";
+		for(auto t : tableau)
+			std::cout << t << " ";
+		std::cout << "\n";
+		std::cout << "(get_init_tableau) Error " << ctr << " is bigger than M:" << M << "\n";
 		return 1;
 	}
 
@@ -343,18 +354,19 @@ alt_main()
 	ntabs=0;
 
 	std::cout << ntabs <<" : ";
-	print(tableau,frame);
+	print_tableau(frame,tableau);
 
 
 	while(get_next_tableau(M,frame,tableau)==0)
 	{
 		std::cout << ++ntabs <<" : ";
-	       	print(tableau,frame);
+		print_tableau(frame,tableau);
 	}
 	std::cout << "total num of tableaux: " << ++ntabs;
 
 	return 0;
 }
+
 
 
 
