@@ -17,23 +17,28 @@ LIBSLapack	=-llapack   -llapacke
 LIBS	        =-lm -lgmp -lgmpxx $(LIBSLapack) $(LIBSLibint)
 INCLUDES        =$(INCLUDESLibint)  $(INCLUDESEig)
 
-all: fci
+all: young
 	
+young: young.cpp weyl.o
+	$(CXX) $(CXXFLAGS) $(DEBUG_FLAG) $(INCLUDESEig) young.cpp weyl.o -o young; ./young > out
 
 weyl: weyl.cpp
 	g++ weyl.cpp -std=c++11 -o weyl; ./weyl > output
 
-minimal: minimal.o
-	$(CXX) minimal.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) minimal.o -o minimal
+weyl.o: weyl.cpp
+	g++ weyl.cpp -std=c++11 -c -o weyl.o
 
-minimal.o: minimal.cpp ci_matrix.cpp
-	$(CXX) minimal.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) -c -o minimal.o
+minimal: minimal.cpp weyl.o
+	$(CXX) minimal.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) weyl.o -o minimal; ./minimal > out
+
+#minimal.o: minimal.cpp ci_matrix.cpp
+#	$(CXX) minimal.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) -c -o minimal.o
 
 test_eigen: test_eigen.cpp
 	g++ -std=c++11 test_eigen.cpp -I/usr/local/include/eigen/Eigen -llapack -llapacke -o test_eigen
 
-fci:fci.o ci_matrix.o parser.o libint_interface.o
-	$(CXX) $(CXXFLAGS) fci.o libint_interface.o ci_matrix.o parser.o $(LIBS) -o fci
+fci:fci.o ci_matrix.o parser.o libint_interface.o weyl.o
+	$(CXX) $(CXXFLAGS) fci.o libint_interface.o weyl.o ci_matrix.o parser.o $(LIBS) -o fci; ./fci > out
 
 parser.o: parser.cpp
 	$(CXX) parser.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) -c -o parser.o
