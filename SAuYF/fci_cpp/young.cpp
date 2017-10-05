@@ -19,9 +19,11 @@ class perm_a
 
 //test functions
 int                   test_symmetrizer();
+int                   test_antisymmetrizer();
 //symmetrizer
 std::vector<perm_a>   Srow(std::vector<int> frame,std::vector<int> tableau);
-
+//anti-symmetrizer
+std::vector<perm_a>   Acol(std::vector<int> frame,std::vector<int> tableau);
 
 void
 print_perm(perm_a P)
@@ -296,10 +298,12 @@ sgn(std::vector<int> perm)
 	return perm_matrix(perm).determinant();
 }
 
-int Ey(std::vector<int> frame_rows,std::vector<int> yT)
+std::vector<perm_a> 
+Ey(std::vector<int> frame_rows,std::vector<int> yT)
 {
-	
-	return 0;
+	std::vector<perm_a> S= Srow(frame_rows,yT);
+	std::vector<perm_a> A= Acol(frame_rows,yT);
+	return multiply(S,A);
 }
 
 int
@@ -339,6 +343,7 @@ Frows_to_Fcols(std::vector<int> Frows)
 
 	
 }
+
 bool
 isvalid_young(std::vector<int> frame_rows, std::vector<int> tableau)
 {
@@ -390,6 +395,7 @@ isvalid_young(std::vector<int> frame_rows, std::vector<int> tableau)
 	
 	return true;
 }
+
 int 
 get_next_young_tableau(const std::vector<int> frame, std::vector<int>& tableau)
 {
@@ -717,7 +723,7 @@ test_antisymmetrizer()
 }
 
 int
-main()
+test_antisymmetrizer()
 {
 	std::vector<int> F;
 	std::vector<int> T;
@@ -733,13 +739,35 @@ main()
 	T.push_back(3);
 	T.push_back(4);
 
+	Acol(F,T);
 	
-	test_antisymmetrizer();
-	
+	return 0;
+}
+ 
+int 
+main()
+{	std::vector<int> F;
+	std::vector<int> T;
 
+	F.clear();
+	F.push_back(2);
+	F.push_back(1);
+
+	T.clear();
+	T.push_back(0);
+	T.push_back(1);
+	T.push_back(2);
+
+	int N=3;
+	int ms=2;
+
+	int num_ytabs=num_young(N,ms);
+
+	for(int k=0;k<num_ytabs; k++)
+	{ 
+		Ey(F,T);
+		get_next_young_tableau(F,T);
+	}
 
 	return 0;
-
-	
-	
 }
