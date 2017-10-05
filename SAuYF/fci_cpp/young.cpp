@@ -410,7 +410,6 @@ get_next_young_tableau(const std::vector<int> frame, std::vector<int>& tableau)
 
 }
 
-
 int
 test_young_tableau_generation()
 {
@@ -480,6 +479,7 @@ test_young_tableau_generation()
 
 
 }
+
 int
 test_symmetrizer()
 {
@@ -616,7 +616,6 @@ Acol(std::vector<int> frame,std::vector<int> tableau)
 		//make permutations over the column, keep items not in row in place
 		perm_a P;
 		P.perm.clear();
-		std::cout << "(young::Acol)\n";
 		int ctr=0;
 		do
 		{
@@ -667,6 +666,55 @@ Acol(std::vector<int> frame,std::vector<int> tableau)
 	}
 	return A;
 }
+int
+test_antisymmetrizer()
+{
+
+	std::vector<int> frame_rows;
+	frame_rows.clear();
+	frame_rows.push_back(2);
+	frame_rows.push_back(2);
+	frame_rows.push_back(1);
+
+	std::vector<int> young_tableau;
+	young_tableau.clear();
+	young_tableau.push_back(0);
+	young_tableau.push_back(1);
+	young_tableau.push_back(2);
+	young_tableau.push_back(3);
+	young_tableau.push_back(4);
+
+	print_tableau(frame_rows,young_tableau);
+
+	std::cout << "frame=[221], tab=[0 1 /2 3 /4]\n";
+	std::vector<perm_a> A=Acol(frame_rows,young_tableau);
+	std::cout << "Anti-symmetrizer of cols:\n";
+	for(int k=0; k<A.size(); k++)
+	{
+		print_perm(A[k]);
+	}
+	// --------------------------------------------------------------------
+	frame_rows.clear();
+	frame_rows.push_back(2);
+	frame_rows.push_back(1);
+
+	young_tableau.clear();
+	young_tableau.push_back(0);
+	young_tableau.push_back(1);
+	young_tableau.push_back(2);
+
+	print_tableau(frame_rows,young_tableau);
+
+	std::cout << "frame=[21], tab=[01/2]\n";
+	A=Acol(frame_rows,young_tableau);
+	std::cout << "Anti-symmetrizer of cols:\n";
+	for(int k=0; k<A.size(); k++)
+	{
+		print_perm(A[k]);
+	}
+	
+	return 0;
+}
 
 int
 main()
@@ -686,71 +734,12 @@ main()
 	T.push_back(4);
 
 	
-	Acol(F,T);
+	test_antisymmetrizer();
 	
 
 
 	return 0;
 
-	/*
-*/
-	/*
-	int N=3;
-
-	std::vector<int> ytab;
-	std::vector<int> frows;
-	frows.push_back(2);
-	frows.push_back(1);
-	get_init_ytableau(N,frows,ytab);
-
-	print_tableau(frows,ytab);
-
-	get_next_ytableau(frows,ytab);
-
-	print_tableau(frows,ytab);
-
-	get_next_ytableau(frows,ytab);
-
-	print_tableau(frows,ytab);
-*/
-	/*
-	std::vector<int> perm={0,1,2};
-	do 
-	{
-		std::cout << sgn(perm) <<"  ";
-		for(int pk : perm)
-			std::cout << pk << " ";
-		std::cout << "\n";
-
-		std::cout << perm_matrix(perm);
-		std::cout << "\n";
-
-
-	}while(std::next_permutation(perm.begin(),perm.end()));
-	*/
-
-
-	/*
-	perm_a P12;
-	P12.perm={1,0,2};
-	P12.coeff=.5;
-
-	//std::cout << ".5 * P12\n";
-	//print_perm(P12);
-
-	perm_a id;
-	id.perm={0,1,2};
-	id.coeff=-1;
-
-	//std::cout << "Id\n";
-	//print_perm(id);
-
-	std::vector<perm_a> pvec;
-	pvec.clear();
-	pvec.push_back(id);
-
-
-	//print_perm(perm_multiply(P12,P12));
-	*/
+	
 	
 }
