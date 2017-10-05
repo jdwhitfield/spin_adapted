@@ -415,6 +415,23 @@ get_next_young_tableau(const std::vector<int> frame, std::vector<int>& tableau)
 	return 1;
 
 }
+std::vector<int>
+invperm(std::vector<int> T)
+{
+    //make invT
+    std::vector<int> invT;
+    invT.clear();
+    for (int i = 0 ; i < T.size() ; i++) 
+	    invT.push_back(i);
+
+    sort(invT.begin(),invT.end(),[&](const int& a, const int& b)
+             {
+	     return(T[a] < T[b]);
+ 	   });
+
+    return invT;
+
+}
 
 int
 test_young_tableau_generation()
@@ -663,7 +680,7 @@ Acol(std::vector<int> frame,std::vector<int> tableau)
 		A=multiply(A,Ac);
 		if(debug) 
 		{
-			std::cout << "after multiply(A,Ac) (young::Srow)\n";
+			std::cout << "after multiply(A,Ac) (young::Acol)\n";
 			for( perm_a p : A)
 				print_perm(p);
 			std::cout << "\n";
@@ -722,30 +739,38 @@ test_antisymmetrizer()
 	return 0;
 }
 
+
 int
-test_antisymmetrizer()
+main()
 {
-	std::vector<int> F;
-	std::vector<int> T;
-	F.clear();
-	F.push_back(2);
-	F.push_back(2);
-	F.push_back(1);
+	perm_a P;
+	P.perm={1,3,0,4,2};
 
-	T.clear();
-	T.push_back(0);
-	T.push_back(1);
-	T.push_back(2);
-	T.push_back(3);
-	T.push_back(4);
+	perm_a invP;
 
-	Acol(F,T);
+	invP.perm=invperm(P.perm);
+
 	
+	std::cout << "Permutation:\n";
+	for(int p : P.perm)
+		std::cout << p << " ";
+	std::cout << "\nInverse Permutation:\n";
+	for(int p : invP.perm)
+		std::cout << p << " ";
+	std::cout << "\n";
+
+        auto ans=perm_multiply(P,invP);
+	std::cout << "Product:\n";
+	for(int p : ans.perm)
+		std::cout << p << " ";
+	std::cout << "\n";
+
+
 	return 0;
 }
  
 int 
-main()
+generate_irrep_basis()
 {	std::vector<int> F;
 	std::vector<int> T;
 
@@ -765,7 +790,6 @@ main()
 
 	for(int k=0;k<num_ytabs; k++)
 	{ 
-		Ey(F,T);
 		get_next_young_tableau(F,T);
 	}
 
