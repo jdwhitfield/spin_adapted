@@ -19,7 +19,10 @@ LIBSMac         =-framework accelerate
 LIBS	        =$(LIBSMac) -lm -lgmp -lgmpxx $(LIBSLapack) $(LIBSLibint) 
 INCLUDES        =$(INCLUDESLibint)  $(INCLUDESEig)
 
-all: fci
+all: young
+
+young: young.cpp weyl.o
+	$(CXX) $(CXXFLAGS) $(INCLUDESEig) young.cpp weyl.o -o young; ./young > out
 	
 weyl: weyl.cpp
 	g++ weyl.cpp -std=c++11 -o weyl; ./weyl > output
