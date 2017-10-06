@@ -415,6 +415,23 @@ get_next_young_tableau(const std::vector<int> frame, std::vector<int>& tableau)
 	return 1;
 
 }
+std::vector<int>
+invperm(std::vector<int> T)
+{
+    //make invT
+    std::vector<int> invT;
+    invT.clear();
+    for (int i = 0 ; i < T.size() ; i++) 
+	    invT.push_back(i);
+
+    sort(invT.begin(),invT.end(),[&](const int& a, const int& b)
+             {
+	     return(T[a] < T[b]);
+ 	   });
+
+    return invT;
+
+}
 
 int
 test_young_tableau_generation()
@@ -622,7 +639,6 @@ Acol(std::vector<int> frame,std::vector<int> tableau)
 		//make permutations over the column, keep items not in row in place
 		perm_a P;
 		P.perm.clear();
-		std::cout << "(young::Acol)\n";
 		int ctr=0;
 		do
 		{
@@ -664,7 +680,7 @@ Acol(std::vector<int> frame,std::vector<int> tableau)
 		A=multiply(A,Ac);
 		if(debug) 
 		{
-			std::cout << "after multiply(A,Ac) (young::Srow)\n";
+			std::cout << "after multiply(A,Ac) (young::Acol)\n";
 			for( perm_a p : A)
 				print_perm(p);
 			std::cout << "\n";
@@ -673,26 +689,83 @@ Acol(std::vector<int> frame,std::vector<int> tableau)
 	}
 	return A;
 }
-
 int
 test_antisymmetrizer()
 {
-	std::vector<int> F;
-	std::vector<int> T;
-	F.clear();
-	F.push_back(2);
-	F.push_back(2);
-	F.push_back(1);
 
-	T.clear();
-	T.push_back(0);
-	T.push_back(1);
-	T.push_back(2);
-	T.push_back(3);
-	T.push_back(4);
+	std::vector<int> frame_rows;
+	frame_rows.clear();
+	frame_rows.push_back(2);
+	frame_rows.push_back(2);
+	frame_rows.push_back(1);
 
-	Acol(F,T);
+	std::vector<int> young_tableau;
+	young_tableau.clear();
+	young_tableau.push_back(0);
+	young_tableau.push_back(1);
+	young_tableau.push_back(2);
+	young_tableau.push_back(3);
+	young_tableau.push_back(4);
+
+	print_tableau(frame_rows,young_tableau);
+
+	std::cout << "frame=[221], tab=[0 1 /2 3 /4]\n";
+	std::vector<perm_a> A=Acol(frame_rows,young_tableau);
+	std::cout << "Anti-symmetrizer of cols:\n";
+	for(int k=0; k<A.size(); k++)
+	{
+		print_perm(A[k]);
+	}
+	// --------------------------------------------------------------------
+	frame_rows.clear();
+	frame_rows.push_back(2);
+	frame_rows.push_back(1);
+
+	young_tableau.clear();
+	young_tableau.push_back(0);
+	young_tableau.push_back(1);
+	young_tableau.push_back(2);
+
+	print_tableau(frame_rows,young_tableau);
+
+	std::cout << "frame=[21], tab=[01/2]\n";
+	A=Acol(frame_rows,young_tableau);
+	std::cout << "Anti-symmetrizer of cols:\n";
+	for(int k=0; k<A.size(); k++)
+	{
+		print_perm(A[k]);
+	}
 	
+	return 0;
+}
+
+
+int
+test_invperm()
+{
+	perm_a P;
+	P.perm={1,3,0,4,2};
+
+	perm_a invP;
+
+	invP.perm=invperm(P.perm);
+
+	
+	std::cout << "Permutation:\n";
+	for(int p : P.perm)
+		std::cout << p << " ";
+	std::cout << "\nInverse Permutation:\n";
+	for(int p : invP.perm)
+		std::cout << p << " ";
+	std::cout << "\n";
+
+        auto ans=perm_multiply(P,invP);
+	std::cout << "Product:\n";
+	for(int p : ans.perm)
+		std::cout << p << " ";
+	std::cout << "\n";
+
+
 	return 0;
 }
  
@@ -710,15 +783,49 @@ main()
 	T.push_back(1);
 	T.push_back(2);
 
-	int N=3;
+	int N=0;
+	for(int k=0; k<F.size(); k++)
+		//count number of boxes
+		N=N+F[k];
+
 	int ms=2;
 
 	int num_ytabs=num_young(N,ms);
 
+	//randomly generate f
+	std::vector<double> f;
+	f.clear();
+	f.push_back(.10342);
+	f.push_back(.31545);
+	f.push_back(.13421);
+
+	double normf=0;
+	for(int k=0; k<f.size(); k++)
+	{
+		normf=normf+f[k]*f[k];
+	}
+	normf=std::sqrt(normf);
+
+	for(int(k=0; k<f.size(); k++)
+		f[k]=f[k]/normf;
+
+	
 	for(int k=0;k<num_ytabs; k++)
 	{ 
-		Ey(F,T);
+
+		//some output
+		std::cout << k << ",  T : ";
+		for(int t: T)
+			std::cout << t << " ";
+		std::cout << "\n";
+
+		//E_ij=E_ii P_{T_i <- T_j}
+		//E_0j=E_00 P_{T_0 <- T_j}
+		//E_j0=E_00 P_{T_j}^{-1}
+		Ey(F,{0,1,2})*invperm(T)*f;
+
 		get_next_young_tableau(F,T);
+
 	}
 
 	return 0;

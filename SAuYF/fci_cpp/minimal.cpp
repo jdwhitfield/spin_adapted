@@ -149,6 +149,7 @@ main(int argc, char *argv[])
 	    //std::cout << "Number of determinants: " << D << std::endl;
     }
 
+<<<<<<< HEAD
 
     std::vector<int> frame_rows;
     frame_rows.clear();
@@ -231,3 +232,4 @@ main(int argc, char *argv[])
 }
 
 
+    

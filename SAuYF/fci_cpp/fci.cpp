@@ -106,7 +106,7 @@ main(int argc, char *argv[])
     get_init_tableau(M/2,frame,T);
     weyl_list.push_back(T);
 
-    for(t : T)
+    for(auto t : T)
 	   std::cout << t << " ";
     std::cout << "\n";
 
@@ -114,9 +114,13 @@ main(int argc, char *argv[])
     {
 
 	get_next_tableau(M/2,frame,T);
+<<<<<<< HEAD
+   	for(auto t : T)
+=======
     	weyl_list.push_back(T);
 
    	for(t : T)
+>>>>>>> cf18a1813d9393140c3115edf8290ec17de17bca
 	   std::cout << t << " ";
         std::cout << "\n";
 	   
