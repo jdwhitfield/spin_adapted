@@ -10,8 +10,10 @@
 #include<chrono>
 #include<algorithm>
 #include<lapacke.h>
+#define EIGEN_USE_LAPACKE
 #define EIGEN_USE_LAPACK
 #include<Eigen>
+
 void
 reset_array(int dim, Eigen::MatrixXd matrix, double*& array);
 
@@ -56,7 +58,8 @@ main()
 	    {
     		matrix_col_major_upper[ctr]=buffer[ctr];
 		if(debug)
-			cout << "read "<< ctr << " as " << matrix_col_major_upper[ctr] << " into (" << i << ","<<j<< ") with ";
+			cout << "read "<< ctr << " as " << matrix_col_major_upper[ctr] 
+			     << " into (" << i << ","<<j<< ") with ";
 		matrix(i,j)=matrix_col_major_upper[ctr];
 		matrix(j,i)=matrix_col_major_upper[ctr];
 
@@ -228,9 +231,10 @@ main()
     if (eigensolver.info() != Eigen::Success) abort();
 
 
-    std::cout << "Eigen took : " << time_elapsed.count() << std::endl;
 
     auto evs=eigensolver.eigenvalues();
+
+    std::cout << "Eigen took : " << time_elapsed.count() << std::endl;
     
     std::vector<double> evs_eigen(dim);
     std::vector<double> evs_lapack(dim);
@@ -247,7 +251,8 @@ main()
     double diff=0;
     double trace_eigen=0;
     double trace_lapack=0;
-    cout << "eigen,lapack\n";
+
+    if(debug)  cout << "eigen,lapack\n";
     for(int i=0; i<dim; i++)
     {
 	    diff+=abs(evs_eigen[i]-evs_lapack[i]);

@@ -34,6 +34,9 @@
 #ifndef LIBINT_INTERFACE
 #define LIBINT_INTERFACE
 
+#define EIGEN_USE_LAPACKE
+#include <Eigen>
+
 #include <libint2.hpp>
 #include "parser.h"
 #include "ci_matrix.h"

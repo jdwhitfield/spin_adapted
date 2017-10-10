@@ -741,7 +741,7 @@ test_antisymmetrizer()
 
 
 int
-main()
+test_invperm()
 {
 	perm_a P;
 	P.perm={1,3,0,4,2};
@@ -770,7 +770,7 @@ main()
 }
  
 int 
-generate_irrep_basis()
+main()
 {	std::vector<int> F;
 	std::vector<int> T;
 
@@ -783,14 +783,69 @@ generate_irrep_basis()
 	T.push_back(1);
 	T.push_back(2);
 
-	int N=3;
+	int N=0;
+	for(int k=0; k<F.size(); k++)
+		//count number of boxes
+		N=N+F[k];
+
 	int ms=2;
 
 	int num_ytabs=num_young(N,ms);
 
+	//randomly generate f
+	std::vector<double> f;
+	f.clear();
+	f.push_back(.10342);
+	f.push_back(.31545);
+	f.push_back(.13421);
+
+	double normf=0;
+	for(int k=0; k<f.size(); k++)
+	{
+		normf=normf+f[k]*f[k];
+	}
+	normf=std::sqrt(normf);
+
+	for(int k=0; k<f.size(); k++)
+		f[k]=f[k]/normf;
+
+	
+	std::vector<perm_a> E00=Ey(F,{0,1,2});
+	std::vector<perm_a> E11=Ey(F,{0,2,1});
+
 	for(int k=0;k<num_ytabs; k++)
 	{ 
+
+		//some output
+		std::cout << "T : ";
+		for(int t: T)
+			std::cout << t << " ";
+		std::cout << "\n";
+
+		//E_ij=E_ii P_{T_i <- T_j}
+		//E_0j=E_00 P_{T_0 <- T_j}
+		//E_1j=E_11 P_{T_j}^{-1}
+
+		perm_a Pij;
+		Pij.perm= invperm(T);
+
+		std::vector<perm_a> E0j=multiply(E00, {Pij});
+
+		std::cout<< "E0" << k << "\n";
+		for(perm_a p: E0j)
+			print_perm(p);
+
 		get_next_young_tableau(F,T);
+
+		std::vector<perm_a> E1j=multiply(E11, {Pij});
+		std::cout<< "E1" << k << "\n";
+		for(perm_a p: E1j)
+			print_perm(p);
+
+		get_next_young_tableau(F,T);
+
+		std::cout << "\n";
+
 	}
 
 	return 0;
