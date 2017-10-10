@@ -113,7 +113,6 @@ perm_multiply(const  std::vector<int>& p1, const std::vector<int>& p2)
 
 	return ans;
 }
-
 basis_func
 multiply(perm_a P, basis_func v)
 {
@@ -137,6 +136,81 @@ multiply(perm_a P, basis_func v)
 	return pv;
 
 }
+
+bool
+compare_bfs(basis_func f1, basis_func f2)
+{
+	int n1=f1.orbs.size();
+	int n2=f2.orbs.size();
+	if(n1<n2)
+		return n1<n2;
+	if(n2>n1)
+		return n1<n2;
+
+	//from now on we'll assume n 
+	int norbs=n1;
+
+	for(int i=0; i<norbs; i++)
+	{
+		if(f1.orbs[i] == f2.orbs[i])
+			continue;
+
+		//now assume they're unequal and return
+		return f1.orbs[i]<f2.orbs[i];
+	}
+	// in the case that they're all equal we'll end up here
+	return true;
+
+}
+std::vector<basis_func>
+multiply(std::vector<perm_a> O, std::vector<basis_func> wf)
+{
+	//multiply and sort a list of permutations and a list of basis functions
+	
+	std::vector<basis_func> new_wf;
+	for(perm_a p: O)
+		for( basis_func bf : wf)
+		{
+			//insert it into the list
+			new_wf.push_back(multiply(p,bf));
+		}
+
+	//first sort 
+	std::sort(new_wf.begin(),new_wf.end(),compare_bfs);
+
+	//then check for repetitions
+	int like_terms;
+	int terms;
+	do
+	{
+		like_terms=0;
+		terms=new_wf.size();
+		for(int j=0; j<terms-1; j++)
+		{
+			//the size of new_wf changes dynamically so we need to re-evaluate if we can execute the next line
+			if( j+1 >= new_wf.size() )
+				break;
+
+			if(new_wf[j].orbs == new_wf[j+1].orbs)
+			{
+				new_wf[j].coeff=new_wf[j].coeff+new_wf[j+1].coeff;
+				new_wf.erase(new_wf.begin()+j+1);
+				like_terms++;
+			}
+
+		}
+
+	}while(like_terms!=0);
+		
+	return new_wf;
+
+
+
+	
+
+
+}
+
 
 std::vector<double>
 multiply(perm_a P, std::vector<double> v)
