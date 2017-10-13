@@ -971,7 +971,22 @@ test_invperm()
 
 	return 0;
 }
- 
+
+double
+overlap(std::vector<basis_func> L,std::vector<basis_func> R)
+{
+	//this function can probably be improved to O(N) 
+	double overlap=0;
+	for( basis_func a : L)
+		for( basis_func b : R)
+		{
+			if(a.orbs==b.orbs)
+				overlap=overlap+a.coeff*b.coeff;
+		}
+
+	return overlap;
+}
+
 int 
 main()
 {	std::vector<int> F;
@@ -995,24 +1010,39 @@ main()
 
 	int num_ytabs=num_young(N,ms);
 
-	basis_func f;
+	using std::vector;
 
-	f.coeff=1;
+	vector<basis_func> wf;
+
+	basis_func f;
+	f.coeff=1/sqrt(14);
+	//how to pick the initial state to make sure it has projection on all irreps?
+	f.orbs.push_back(1);
+	f.orbs.push_back(0);
+	f.orbs.push_back(0);
+
+	wf.push_back(f);
+
+	f.coeff=2/sqrt(14);  
+	f.orbs.clear();
+	f.orbs.push_back(0);
+	f.orbs.push_back(1);
+	f.orbs.push_back(0);
+
+	wf.push_back(f);
+
+	f.coeff=3/sqrt(14);  
+	f.orbs.clear();
 	f.orbs.push_back(0);
 	f.orbs.push_back(0);
 	f.orbs.push_back(1);
 
-	std::cout << " initial state, |f> : \n"; //  coefficient and values: ";
-	print_bf(f);
-	
-	/*
-	std::cout << f.coeff << ", [ ";
-	for(int k=0; k<f.orbs.size(); k++)
-	{
-		std::cout << f.orbs[k] << " ";
-	}
-	std::cout << "]\n";
-	*/
+	wf.push_back(f);
+
+	std::cout << " initial state : \n"; // somewhat random initial state
+	for(auto bf: wf)
+		print_bf(bf);
+	std::cout << "Norm^2 : " << overlap(wf,wf) << "\n"; 
 
 
 	//apply Young operators to F
@@ -1021,71 +1051,33 @@ main()
 	//then we'll need to be able to apply a permutation to a set of basis vectors
 	auto F0=multiply(Ey(F,{0,1,2}),f);
 
-	std::cout << "E00 |f> : \n"; //  coefficient and values: ";
-	for(auto f: F0)
-		print_bf(f);
-
-	
-	//first we need to be able to apply a permutation to a basis vector
-	/*
-	perm_a P12;
-	P12.perm={0,2,1};
-	
-	basis_func p12_f=multiply(P12,f);
-	std::cout << " P_12 f coefficient and values: ";
-	std::cout << p12_f.coeff << ", [ ";
-	for(int k=0; k<p12_f.orbs.size(); k++)
-	{
-		std::cout << p12_f.orbs[k] << " ";
-	}
-	std::cout << "]\n";
-
-	for( perm_a e : E0)
-	{
-		print_perm(e);
-		std::cout << "\n";
-	}
-	
-
-	std::cout << "\n\n";
-
-	*/
-	/*
-	std::cout << p12_f.coeff << ", [ ";
-	for(int k=0; k<p12_f.orbs.size(); k++)
-	{
-		std::cout << p12_f.orbs[k] << " ";
-	}
-	std::cout << "]\n";
-	*/
-
-	
 	for(int k=0;k<num_ytabs; k++)
 	{ 
 
-
-		//some output
-		/*
-		std::cout << k << ",  T : ";
-		for(int t: T)
-			std::cout << t << " ";
-		std::cout << "\n";
-		*/
 
 		//E_ij=E_ii P_{T_i <- T_j}
 		//E_0j=E_00 P_{T_0 <- T_j}
 		//E_j0=E_00 P_{T_j}^{-1}
 		//Ey(F,{0,1,2})*invperm(T)*f;
 
+		perm_a invpT;
+		invpT.perm=invperm(T);
 
-		get_next_young_tableau(F,T);
+		//the brackets are so it is a list per the specification of multiply(a,b)
+		auto Eij= multiply(E0,{invpT});
 
-		auto invpT=invperm(T);
+		auto newf=multiply(Eij,wf);
 
-		newf=multiply(multiply(invpT,f));
 
-		for(auto f: F0)
+		std::cout << "F" << k << ":\n";
+
+		for(auto f: newf)
 			print_bf(f);
+
+		std::cout << "\n";
+		get_next_young_tableau(F,T);
+		std::cout << "Norm^2 : " << overlap(newf,newf) << "\n"; 
+
 	}
 
 	return 0;
