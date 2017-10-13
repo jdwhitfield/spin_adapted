@@ -40,6 +40,17 @@ print_perm(perm_a P)
 	std::cout << "\n";
 	return;
 }
+void
+print_bf(basis_func bf)
+{
+	if(bf.coeff>0)
+		std::cout << "+";
+	std::cout << bf.coeff << " | ";
+	for(auto p : bf.orbs)
+		std::cout << p <<" ";
+	std::cout << " > \n";
+	return;
+}
 
 perm_a
 perm_I(int n)
@@ -113,10 +124,11 @@ perm_multiply(const  std::vector<int>& p1, const std::vector<int>& p2)
 
 	return ans;
 }
+
 basis_func
 multiply(perm_a P, basis_func v)
 {
-	bool debug=true;
+	bool debug=false;
 	using std::cout;
 	if(P.perm.size()!=v.orbs.size())
 	{
@@ -162,11 +174,16 @@ compare_bfs(basis_func f1, basis_func f2)
 	return true;
 
 }
+
+
+
+
 std::vector<basis_func>
 multiply(std::vector<perm_a> O, std::vector<basis_func> wf)
 {
+	bool debug=false;
+
 	//multiply and sort a list of permutations and a list of basis functions
-	
 	std::vector<basis_func> new_wf;
 	for(perm_a p: O)
 		for( basis_func bf : wf)
@@ -174,9 +191,19 @@ multiply(std::vector<perm_a> O, std::vector<basis_func> wf)
 			//insert it into the list
 			new_wf.push_back(multiply(p,bf));
 		}
-
-	//first sort 
+        //first sort 
 	std::sort(new_wf.begin(),new_wf.end(),compare_bfs);
+
+	if(debug)
+	{
+		std::cout << "(young::multiply(vector<perm_a>, vector<basis_func>))\n";
+		for(auto bf: new_wf)
+		{
+			print_bf(bf);
+			std::cout << "\n";
+		}
+	}
+	
 
 	//then check for repetitions
 	int like_terms;
@@ -187,7 +214,8 @@ multiply(std::vector<perm_a> O, std::vector<basis_func> wf)
 		terms=new_wf.size();
 		for(int j=0; j<terms-1; j++)
 		{
-			//the size of new_wf changes dynamically so we need to re-evaluate if we can execute the next line
+			//the size of new_wf changes dynamically 
+			//so we need to re-evaluate if we can execute the next line
 			if( j+1 >= new_wf.size() )
 				break;
 
@@ -201,16 +229,42 @@ multiply(std::vector<perm_a> O, std::vector<basis_func> wf)
 		}
 
 	}while(like_terms!=0);
+	
+	if(debug)
+	{
+		std::cout << "(young::multiply(vector<perm_a>, vector<basis_func>))\n";
+		for(auto bf: new_wf)
+		{
+			print_bf(bf);
+			std::cout << "\n";
+		}
+	}
 		
 	return new_wf;
 
-
-
-	
-
-
 }
 
+std::vector<basis_func>
+multiply(std::vector<perm_a> O, basis_func f0)
+{
+	bool debug=false;
+
+	//boot strap
+	
+	std::vector<basis_func> f={f0};
+
+	std::vector<basis_func> Of = multiply(O,f);
+	if(debug)
+	{
+		std::cout << "(young::multiply(vector<perm_a>, basis_func))\n";
+		for(auto bf: Of)
+		{
+			print_bf(bf);
+			std::cout << "\n";
+		}
+	}
+	return Of;
+}
 
 std::vector<double>
 multiply(perm_a P, std::vector<double> v)
@@ -278,7 +332,7 @@ pos_ymin(const int pos,const std::vector<int> frame, std::vector<int> tableau)
 	int above_pos;
 	int min_idx=0;
 	int row,col;
-	bool debug=true;
+	bool debug=false;
 
 	//get row from pos
 	pos_to_row_col(pos,frame,row,col);
@@ -941,64 +995,97 @@ main()
 
 	int num_ytabs=num_young(N,ms);
 
-	//randomly generate f
 	basis_func f;
-	//for(int k=0; k< factorial[N]; k++)
-	//{
+
 	f.coeff=1;
 	f.orbs.push_back(0);
 	f.orbs.push_back(0);
 	f.orbs.push_back(1);
 
-	//}
-
+	std::cout << " initial state, |f> : \n"; //  coefficient and values: ";
+	print_bf(f);
+	
 	/*
-	double normf=0;
+	std::cout << f.coeff << ", [ ";
 	for(int k=0; k<f.orbs.size(); k++)
 	{
-		normf=normf+f[k]*f[k];
+		std::cout << f.orbs[k] << " ";
 	}
-	normf=std::sqrt(normf);
-
-	for(int k=0; k<f.size(); k++)
-		f[k]=f[k]/normf;
-
-	std::cout << "f : " << f[0] << " " << f[1] << " " << f[2] << "\n";
+	std::cout << "]\n";
 	*/
 
+
 	//apply Young operators to F
-	//first we need to be able to apply a permutation to a basis vector
+	auto E0= Ey(F,{0,1,2});
+
 	//then we'll need to be able to apply a permutation to a set of basis vectors
+	auto F0=multiply(Ey(F,{0,1,2}),f);
+
+	std::cout << "E00 |f> : \n"; //  coefficient and values: ";
+	for(auto f: F0)
+		print_bf(f);
+
+	
+	//first we need to be able to apply a permutation to a basis vector
+	/*
 	perm_a P12;
 	P12.perm={0,2,1};
 	
 	basis_func p12_f=multiply(P12,f);
 	std::cout << " P_12 f coefficient and values: ";
-	std::cout << p12_f.coeff << "\n";
+	std::cout << p12_f.coeff << ", [ ";
 	for(int k=0; k<p12_f.orbs.size(); k++)
 	{
 		std::cout << p12_f.orbs[k] << " ";
 	}
-	std::cout << "\n";
+	std::cout << "]\n";
+
+	for( perm_a e : E0)
+	{
+		print_perm(e);
+		std::cout << "\n";
+	}
 	
-	
+
+	std::cout << "\n\n";
+
+	*/
+	/*
+	std::cout << p12_f.coeff << ", [ ";
+	for(int k=0; k<p12_f.orbs.size(); k++)
+	{
+		std::cout << p12_f.orbs[k] << " ";
+	}
+	std::cout << "]\n";
+	*/
+
 	
 	for(int k=0;k<num_ytabs; k++)
 	{ 
 
+
 		//some output
+		/*
 		std::cout << k << ",  T : ";
 		for(int t: T)
 			std::cout << t << " ";
 		std::cout << "\n";
+		*/
 
 		//E_ij=E_ii P_{T_i <- T_j}
 		//E_0j=E_00 P_{T_0 <- T_j}
 		//E_j0=E_00 P_{T_j}^{-1}
 		//Ey(F,{0,1,2})*invperm(T)*f;
 
+
 		get_next_young_tableau(F,T);
 
+		auto invpT=invperm(T);
+
+		newf=multiply(multiply(invpT,f));
+
+		for(auto f: F0)
+			print_bf(f);
 	}
 
 	return 0;
