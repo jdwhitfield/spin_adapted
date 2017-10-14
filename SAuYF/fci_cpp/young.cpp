@@ -40,6 +40,7 @@ print_perm(perm_a P)
 	std::cout << "\n";
 	return;
 }
+
 void
 print_bf(basis_func bf)
 {
@@ -145,6 +146,7 @@ multiply(perm_a P, basis_func v)
 	}
 
 	pv.coeff=P.coeff*v.coeff;
+	if(debug) std::cout << "pv.coeff = P.coeff * v.coeff " << pv.coeff << " = " << P.coeff << " * " << v.coeff << "\n";
 	return pv;
 
 }
@@ -174,9 +176,6 @@ compare_bfs(basis_func f1, basis_func f2)
 	return true;
 
 }
-
-
-
 
 std::vector<basis_func>
 multiply(std::vector<perm_a> O, std::vector<basis_func> wf)
@@ -973,23 +972,79 @@ test_invperm()
 }
 
 double
-overlap(std::vector<basis_func> L,std::vector<basis_func> R)
+dot(std::vector<basis_func> L,std::vector<basis_func> R)
 {
 	//this function can probably be improved to O(N) 
-	double overlap=0;
+	double dot=0;
 	for( basis_func a : L)
 		for( basis_func b : R)
 		{
 			if(a.orbs==b.orbs)
-				overlap=overlap+a.coeff*b.coeff;
+				dot=dot+a.coeff*b.coeff;
 		}
 
-	return overlap;
+	return dot;
+}
+
+void
+test_dot()
+{
+	using std::vector;
+
+	vector<basis_func> wf;
+	basis_func f;
+	wf.clear();
+
+	f.coeff= +1/sqrt(3);f.orbs.clear();
+	f.orbs.push_back(1);f.orbs.push_back(0);f.orbs.push_back(0);
+	wf.push_back(f);
+
+	f.coeff= -2/sqrt(3);f.orbs.clear();
+	f.orbs.push_back(0);f.orbs.push_back(1);f.orbs.push_back(0);
+	wf.push_back(f);
+
+	f.coeff= +1/sqrt(3);f.orbs.clear();
+	f.orbs.push_back(0);f.orbs.push_back(0);f.orbs.push_back(1);
+	wf.push_back(f);
+
+	std::cout << " state 1 : \n"; // somewhat random initial state
+	for(auto bf: wf)
+		print_bf(bf);
+	std::cout << "Norm^2 : " << dot(wf,wf) << "\n"; 
+
+	vector<basis_func> wf2;
+	wf2.clear();
+
+	//how to pick the initial state to make sure it has projection on all irreps?
+	f.coeff= +2/sqrt(3);f.orbs.clear();
+	f.orbs.push_back(1);f.orbs.push_back(0);f.orbs.push_back(0);
+	wf2.push_back(f);
+
+	f.coeff= -2/sqrt(3);f.orbs.clear();
+	f.orbs.push_back(0);f.orbs.push_back(1);f.orbs.push_back(0);
+	wf2.push_back(f);
+
+	f.coeff= +1/sqrt(3);f.orbs.clear();
+	f.orbs.push_back(0);f.orbs.push_back(0);f.orbs.push_back(1);
+	wf2.push_back(f);
+
+	std::cout << " state 2 : \n"; // somewhat random initial state
+	for(auto bf: wf2)
+		print_bf(bf);
+	std::cout << "Norm^2 : " << dot(wf2,wf2) << "\n"; 
+
+	std::cout << " state 1 . state 2 : " << dot(wf,wf2) << "\n";
+	std::cout << " (2/3) + (4/3) + 1/3 = " << 7/3. << "\n";
+
+	
+	return;
 }
 
 int 
 main()
-{	std::vector<int> F;
+{	
+	using std::vector;
+	std::vector<int> F;
 	std::vector<int> T;
 
 	F.clear();
@@ -1010,75 +1065,103 @@ main()
 
 	int num_ytabs=num_young(N,ms);
 
-	using std::vector;
+	vector<vector<basis_func>> C;
+	C.clear();
 
-	vector<basis_func> wf;
-
-	basis_func f;
-	f.coeff=1/sqrt(14);
 	//how to pick the initial state to make sure it has projection on all irreps?
-	f.orbs.push_back(1);
-	f.orbs.push_back(0);
-	f.orbs.push_back(0);
+	vector<basis_func> wf;
+	basis_func f;
+	wf.clear();
 
-	wf.push_back(f);
-
-	f.coeff=2/sqrt(14);  
+	f.coeff= +1/sqrt(1);
 	f.orbs.clear();
-	f.orbs.push_back(0);
-	f.orbs.push_back(1);
-	f.orbs.push_back(0);
-
+	f.orbs.push_back(1);f.orbs.push_back(0);f.orbs.push_back(0);
 	wf.push_back(f);
 
-	f.coeff=3/sqrt(14);  
-	f.orbs.clear();
-	f.orbs.push_back(0);
-	f.orbs.push_back(0);
-	f.orbs.push_back(1);
-
+	f.coeff= +0/sqrt(1);f.orbs.clear();
+	f.orbs.push_back(0);f.orbs.push_back(1);f.orbs.push_back(0);
 	wf.push_back(f);
 
-	std::cout << " initial state : \n"; // somewhat random initial state
+	f.coeff= +0/sqrt(14);f.orbs.clear();
+	f.orbs.push_back(0);f.orbs.push_back(0);f.orbs.push_back(1);
+	wf.push_back(f);
+
+
+	std::cout << "state 1 : \n"; // somewhat random initial state
 	for(auto bf: wf)
 		print_bf(bf);
-	std::cout << "Norm^2 : " << overlap(wf,wf) << "\n"; 
+	std::cout << "Norm^2 : " << dot(wf,wf) << "\n"; 
 
 
 	//apply Young operators to F
+	//E_0j=E_00 P_{T_0 <- T_j}
+	//
+	std::cout << "E0:\n"; 
 	auto E0= Ey(F,{0,1,2});
+	for(auto p : E0)
+		print_perm(p);
+	std::cout << "\n"; 
 
-	//then we'll need to be able to apply a permutation to a set of basis vectors
-	auto F0=multiply(Ey(F,{0,1,2}),f);
+	perm_a invpT;
+	invpT.perm=invperm({0,2,1});
+	auto E01= Ey(F,{0,1,2});
+	E01=multiply(E01,{invpT});
 
-	for(int k=0;k<num_ytabs; k++)
-	{ 
+	auto E1= Ey(F,{0,2,1});
+	auto E10= Ey(F,{0,2,1});
+	E10=multiply(E10,{invpT});
+
+	//then we'll need to apply a permutation to a set of basis vectors
+	/*
+	std::cout << "\n";
+	std::cout << "+1 * (012) |wf>:\n"; 
+	print_perm(E0[0]);
+	std::cout << "\n";
+	vector<basis_func> A = multiply({E0[0]},wf);
+	for(auto a : A) print_bf(a);
+	std::cout << "\n";
+	std::cout << "-1 * (210) |wf>:\n"; 
+	A = multiply({E0[1]},wf);
+	for(auto a : A) print_bf(a);
+	std::cout << "\n";
+	std::cout << "+1 * (102) |wf>:\n"; 
+	A = multiply({E0[2]},wf);
+	for(auto a : A) print_bf(a);
+	std::cout << "\n";
+	std::cout << "-1 * (120) |wf>:\n"; 
+	A = multiply({E0[3]},wf);
+	for(auto a : A) print_bf(a);
+	std::cout << "\n";
+	*/
 
 
-		//E_ij=E_ii P_{T_i <- T_j}
-		//E_0j=E_00 P_{T_0 <- T_j}
-		//E_j0=E_00 P_{T_j}^{-1}
-		//Ey(F,{0,1,2})*invperm(T)*f;
 
-		perm_a invpT;
-		invpT.perm=invperm(T);
+	/*
+	std::cout << "-1 * (210) |f>:" << multiply(E0[1],f) << "\n";
+	std::cout << "+1 * (102) |f>:" << multiply(E0[2],f) << "\n";
+	std::cout << "-1 * (012) |f>:" << multiply(E0[3],f) << "\n";
+	*/
+	auto F0=multiply(E0,wf);
+	auto F1=multiply(E01,wf);
+	auto F2=multiply(E1,wf);
+	auto F3=multiply(E10,wf);
+	C.push_back(F0);
+	C.push_back(F1);
+	C.push_back(F2);
+	C.push_back(F3);
 
-		//the brackets are so it is a list per the specification of multiply(a,b)
-		auto Eij= multiply(E0,{invpT});
-
-		auto newf=multiply(Eij,wf);
-
-
-		std::cout << "F" << k << ":\n";
-
-		for(auto f: newf)
+	for(int i=0; i<C.size(); i++)
+	{
+		auto wf=C[i];
+		std::cout << "state "<< i << " : \n";
+		for( auto f : wf )
 			print_bf(f);
-
-		std::cout << "\n";
-		get_next_young_tableau(F,T);
-		std::cout << "Norm^2 : " << overlap(newf,newf) << "\n"; 
-
 	}
+
+	//compute overlap and inverse square root
+	Matrix S;
+	S.resize(2,2);
+
 
 	return 0;
 }
