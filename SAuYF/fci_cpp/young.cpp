@@ -1073,25 +1073,73 @@ main()
 	basis_func f;
 	wf.clear();
 
-	f.coeff= +1/sqrt(1);
+	/* RANDOM STATE
+	double a,b,c;
+	a=.1077;
+	b=.0910;
+	c=.1015;
+	double norm2=a*a+b*b+c*c;
+	a=a/sqrt(norm2);
+	b=b/sqrt(norm2);
+	c=c/sqrt(norm2);
+
+	f.coeff= a;
 	f.orbs.clear();
 	f.orbs.push_back(1);f.orbs.push_back(0);f.orbs.push_back(0);
 	wf.push_back(f);
 
-	f.coeff= +0/sqrt(1);f.orbs.clear();
+	f.coeff= b;
+	f.orbs.clear();
 	f.orbs.push_back(0);f.orbs.push_back(1);f.orbs.push_back(0);
 	wf.push_back(f);
 
-	f.coeff= +0/sqrt(14);f.orbs.clear();
+	f.coeff= c;
+	f.orbs.clear();
 	f.orbs.push_back(0);f.orbs.push_back(0);f.orbs.push_back(1);
 	wf.push_back(f);
+	*/
+
+	/* 100 INVARIANT UNDER P_{T_0 <- T_j} = P23
+	 
+	f.coeff= 1;
+	f.orbs.clear();
+	f.orbs.push_back(1);f.orbs.push_back(0);f.orbs.push_back(0);
+	wf.push_back(f);
+
+	 */
 
 
-	std::cout << "state 1 : \n"; // somewhat random initial state
+	/* 010 
+	f.coeff= 1;
+	f.orbs.clear();
+	f.orbs.push_back(0);f.orbs.push_back(1);f.orbs.push_back(0);
+	wf.push_back(f);
+	 */
+
+	/* 001 
+	f.coeff= 1;
+	f.orbs.clear();
+	f.orbs.push_back(0);f.orbs.push_back(0);f.orbs.push_back(1);
+	wf.push_back(f);
+	 */
+
+	/* 100 + 010 + 001 */
+	f.coeff=1/sqrt(3);
+	f.orbs.clear();f.orbs.push_back(0);f.orbs.push_back(0);f.orbs.push_back(1);
+	wf.push_back(f);
+
+	f.coeff=1/sqrt(3);
+	f.orbs.clear();f.orbs.push_back(0);f.orbs.push_back(1);f.orbs.push_back(0);
+	wf.push_back(f);
+
+	f.coeff=1/sqrt(3);
+	f.orbs.clear();f.orbs.push_back(1);f.orbs.push_back(0);f.orbs.push_back(0);
+	wf.push_back(f);
+
+	std::cout << "state 1 : \n"; 
 	for(auto bf: wf)
 		print_bf(bf);
 	std::cout << "Norm^2 : " << dot(wf,wf) << "\n"; 
-
 
 	//apply Young operators to F
 	//E_0j=E_00 P_{T_0 <- T_j}
@@ -1141,10 +1189,12 @@ main()
 	std::cout << "+1 * (102) |f>:" << multiply(E0[2],f) << "\n";
 	std::cout << "-1 * (012) |f>:" << multiply(E0[3],f) << "\n";
 	*/
+
 	auto F0=multiply(E0,wf);
 	auto F1=multiply(E01,wf);
 	auto F2=multiply(E1,wf);
 	auto F3=multiply(E10,wf);
+
 	C.push_back(F0);
 	C.push_back(F1);
 	C.push_back(F2);
@@ -1153,15 +1203,36 @@ main()
 	for(int i=0; i<C.size(); i++)
 	{
 		auto wf=C[i];
-		std::cout << "state "<< i << " : \n";
+		std::cout << "state ,"<< i << " : \n";
 		for( auto f : wf )
 			print_bf(f);
 	}
-
+	
 	//compute overlap and inverse square root
 	Matrix S;
-	S.resize(2,2);
+	S.resize(C.size(),C.size());
 
+	for(int i=0; i<S.cols(); i++)
+		for(int j=0; j<S.rows(); j++)
+		{
+			S(i,j)=dot(C[i],C[j]);
+		}
+
+	std::cout << S << "\n";
+	
+	Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(S);
+	if (eigensolver.info() != Eigen::Success) 
+	{
+		std::cout << "Failed to solve eigensystem\n";
+		abort();
+	}
+
+
+	Matrix U=eigensolver.eigenvectors();
+	Matrix s=eigensolver.eigenvalues();
+
+	std::cout << "s.cols(): " << s.cols() << ", s.rows(): " << s.rows();
+	Matrix X;
 
 	return 0;
 }
