@@ -1044,6 +1044,7 @@ int
 main()
 {	
 	using std::vector;
+	using std::cout;
 	std::vector<int> F;
 	std::vector<int> T;
 
@@ -1065,8 +1066,6 @@ main()
 
 	int num_ytabs=num_young(N,ms);
 
-	vector<vector<basis_func>> C;
-	C.clear();
 
 	//how to pick the initial state to make sure it has projection on all irreps?
 	vector<basis_func> wf;
@@ -1117,13 +1116,13 @@ main()
 	 */
 
 	/* 001 
+	 */
 	f.coeff= 1;
 	f.orbs.clear();
 	f.orbs.push_back(0);f.orbs.push_back(0);f.orbs.push_back(1);
 	wf.push_back(f);
-	 */
 
-	/* 100 + 010 + 001 */
+	/* 100 + 010 + 001 
 	f.coeff=1/sqrt(3);
 	f.orbs.clear();f.orbs.push_back(0);f.orbs.push_back(0);f.orbs.push_back(1);
 	wf.push_back(f);
@@ -1135,6 +1134,7 @@ main()
 	f.coeff=1/sqrt(3);
 	f.orbs.clear();f.orbs.push_back(1);f.orbs.push_back(0);f.orbs.push_back(0);
 	wf.push_back(f);
+	*/
 
 	std::cout << "state 1 : \n"; 
 	for(auto bf: wf)
@@ -1151,54 +1151,149 @@ main()
 	std::cout << "\n"; 
 
 	perm_a invpT;
+	//P_23
 	invpT.perm=invperm({0,2,1});
-	auto E01= Ey(F,{0,1,2});
-	E01=multiply(E01,{invpT});
+	auto P23_E0=multiply({invpT},E0);
 
-	auto E1= Ey(F,{0,2,1});
-	auto E10= Ey(F,{0,2,1});
-	E10=multiply(E10,{invpT});
+	//P_12
+	invpT.perm=invperm({1,0,2});
+	auto P12_E0=multiply({invpT},E0);
 
-	//then we'll need to apply a permutation to a set of basis vectors
+	//P_13
+	invpT.perm=invperm({2,1,0});
+	auto P13_E0=multiply({invpT},E0);
+
+	std::vector<int> perm = {0,1,2};
+
+	//overlap matrix
+	Matrix S;
+
+	int rank;
+
+	//Matrix U=eigensolver.eigenvectors();
+
+	//std::cout << "s.cols(): " << s.cols() << ", s.rows(): " << s.rows() << "\n";
+	//std::cout << "Eigenvalues: ";
+	//std::cout << "\n";
+
+
+	vector<vector<basis_func>> C;
+	C.clear();
+
+	do{
+		invpT.perm=invperm(perm);
+		C.push_back(multiply(multiply({invpT},E0),wf));
+		S.resize(C.size(),C.size());
+
+		for(int i=0; i<S.cols(); i++)
+			for(int j=0; j<S.rows(); j++)
+				S(i,j)=dot(C[i],C[j]);
+
+		Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(S);
+
+		if (eigensolver.info() != Eigen::Success) 
+		{
+			std::cout << "Failed to solve eigensystem\n";
+			abort();
+		}
+
+		Matrix s=eigensolver.eigenvalues();
+
+		rank=0;
+		for(int j=0; j<s.rows(); j++)
+			if( abs(s(j)) < 1e-5 )
+			{
+				C.pop_back();
+				break;
+			}
+			else
+			{
+				rank=rank+1;
+			}
+
+		if(rank==num_ytabs)
+			break;
+
+	}while( std::next_permutation(perm.begin(),perm.end()) );
+
+
+	cout << S << "\n";
+	Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(S);
+
+	if (eigensolver.info() != Eigen::Success) 
+	{
+		std::cout << "Failed to solve eigensystem\n";
+		abort();
+	}
+
+	Matrix s=eigensolver.eigenvalues();
+	Matrix U=eigensolver.eigenvectors();
+
+	Matrix x=s;
+	Matrix invs=s;
+
+	for(int j=0; j<x.rows(); j++)
+	{
+		x(j)=1/sqrt(s(j));
+		invs(j)=1/(s(j));
+	}
+
+	Matrix invS=U*invs.asDiagonal()*U.adjoint();
+
+	cout << "S*inverse(S): \n"
+	     << S*invS << "\n";
+
+	cout << "s: ";
+	for( int j=0; j<x.rows(); j++)
+		cout << s(j) << " ";
+	cout << "\n";
+
+
+	cout << "x: ";
+	for( int j=0; j<x.rows(); j++)
+		cout << x(j) << " ";
+	cout << "\n";
+
+	Matrix X=x.asDiagonal(); //*U.adjoint(); 
+	cout << "X=[" << X.rows() << "," <<  X.cols() << "]\n";
+	cout << "U=[" << U.rows() << "," <<  U.cols() << "]\n";
+
+	X=U*x.asDiagonal()*U.adjoint();
+
+
+	perm_a P;
+	P.coeff=1;
+	P.perm={1,0,2};
+
+	cout <<"\n";
+	print_perm(P);
+	vector<vector<basis_func>> out=C;
+	for(int i=0; i<C.size(); i++)
+		out[i]=multiply({P},C[i]);
+
+	//take dot product with each basis function to get D
+	//i.e. C^+ (PC)
+
+	Matrix out2=S; //just because S has the correct dimensions
+	for(int i=0; i<out2.cols(); i++)
+		for(int j=0; j<out2.rows(); j++)
+		{
+			out2(i,j)=dot(C[i],out[j]);
+		}
+	cout << "C^+ (PC) \n" << out2 << "\n";
+
+	Matrix out3= invS*out2;
+	cout << "S^-1 C^+ (PC) \n" << out3 << "\n";
+
+
+
 	/*
-	std::cout << "\n";
-	std::cout << "+1 * (012) |wf>:\n"; 
-	print_perm(E0[0]);
-	std::cout << "\n";
-	vector<basis_func> A = multiply({E0[0]},wf);
-	for(auto a : A) print_bf(a);
-	std::cout << "\n";
-	std::cout << "-1 * (210) |wf>:\n"; 
-	A = multiply({E0[1]},wf);
-	for(auto a : A) print_bf(a);
-	std::cout << "\n";
-	std::cout << "+1 * (102) |wf>:\n"; 
-	A = multiply({E0[2]},wf);
-	for(auto a : A) print_bf(a);
-	std::cout << "\n";
-	std::cout << "-1 * (120) |wf>:\n"; 
-	A = multiply({E0[3]},wf);
-	for(auto a : A) print_bf(a);
-	std::cout << "\n";
-	*/
-
-
-
-	/*
-	std::cout << "-1 * (210) |f>:" << multiply(E0[1],f) << "\n";
-	std::cout << "+1 * (102) |f>:" << multiply(E0[2],f) << "\n";
-	std::cout << "-1 * (012) |f>:" << multiply(E0[3],f) << "\n";
-	*/
-
-	auto F0=multiply(E0,wf);
-	auto F1=multiply(E01,wf);
-	auto F2=multiply(E1,wf);
-	auto F3=multiply(E10,wf);
-
-	C.push_back(F0);
-	C.push_back(F1);
-	C.push_back(F2);
-	C.push_back(F3);
+	//this is sufficient to span the subspace
+	C.push_back(multiply(E0,wf));
+	C.push_back(multiply(P23_E0,wf));
+	//P12_E0 same thing. See group theory notes.
+	//C.push_back(multiply(P12_E0,wf));
+	//C.push_back(multiply(P13_E0,wf));
 
 	for(int i=0; i<C.size(); i++)
 	{
@@ -1207,32 +1302,15 @@ main()
 		for( auto f : wf )
 			print_bf(f);
 	}
+
+	auto E1= Ey(F,{0,2,1});
+	auto E10= Ey(F,{0,2,1});
+	E10=multiply({invpT},E10);
+	*/
 	
-	//compute overlap and inverse square root
-	Matrix S;
-	S.resize(C.size(),C.size());
-
-	for(int i=0; i<S.cols(); i++)
-		for(int j=0; j<S.rows(); j++)
-		{
-			S(i,j)=dot(C[i],C[j]);
-		}
-
-	std::cout << S << "\n";
 	
-	Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(S);
-	if (eigensolver.info() != Eigen::Success) 
-	{
-		std::cout << "Failed to solve eigensystem\n";
-		abort();
-	}
 
-
-	Matrix U=eigensolver.eigenvectors();
-	Matrix s=eigensolver.eigenvalues();
-
-	std::cout << "s.cols(): " << s.cols() << ", s.rows(): " << s.rows();
-	Matrix X;
 
 	return 0;
 }
+
