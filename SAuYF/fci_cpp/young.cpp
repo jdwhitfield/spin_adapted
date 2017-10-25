@@ -1261,29 +1261,50 @@ main()
 	X=U*x.asDiagonal()*U.adjoint();
 
 
+	
 	perm_a P;
 	P.coeff=1;
-	P.perm={1,0,2};
+	P.perm={0,1,2};
 
-	cout <<"\n";
-	print_perm(P);
-	vector<vector<basis_func>> out=C;
-	for(int i=0; i<C.size(); i++)
-		out[i]=multiply({P},C[i]);
+	//vector<perm_a> Wij;
+	int i=0;
+	int j=0;
 
-	//take dot product with each basis function to get D
-	//i.e. C^+ (PC)
 
-	Matrix out2=S; //just because S has the correct dimensions
-	for(int i=0; i<out2.cols(); i++)
-		for(int j=0; j<out2.rows(); j++)
-		{
-			out2(i,j)=dot(C[i],out[j]);
-		}
-	cout << "C^+ (PC) \n" << out2 << "\n";
 
-	Matrix out3= invS*out2;
-	cout << "S^-1 C^+ (PC) \n" << out3 << "\n";
+	do //loop over permutations
+	{
+		cout <<"\n";
+		print_perm(P);
+		vector<vector<basis_func>> out=C;
+		for(int i=0; i<C.size(); i++)
+			out[i]=multiply({P},C[i]);
+
+		//take dot product with each basis function to get D
+		//i.e. C^+ (PC)
+
+		Matrix out2=S; //just because S has the correct dimensions
+		for(int i=0; i<out2.cols(); i++)
+			for(int j=0; j<out2.rows(); j++)
+			{
+				out2(i,j)=dot(C[i],out[j]);
+			}
+		cout << "C^+ (PC) \n" << out2 << "\n";
+
+		Matrix out3= invS*out2;
+		cout << "S^-1 C^+ (PC) \n" << out3 << "\n";
+
+		//P.coeff=(num_ytabs/fac[N])*out3(i,j);
+
+
+		//auto invP=P;
+		//invP.perm=invperm(P.perm);
+
+
+		//Wij.push_back(invP);
+
+	}while( std::next_permutation(P.perm.begin() , P.perm.end()) );
+
 
 
 
