@@ -252,12 +252,13 @@ multiply(std::vector<perm_a> A, std::vector<perm_a> B)
 			if( j+1 >= AB.size() )
 				break;
 
-			if(AB[j].perm == AB[j+1].perm)
+			if(AB[j].perm == AB[j+1].perm || fabs(AB[j+1].coeff)<1e-10)
 			{
 				AB[j].coeff=AB[j].coeff+AB[j+1].coeff;
 				AB.erase(AB.begin()+j+1);
 				like_terms++;
 			}
+
 
 		}
 
@@ -281,7 +282,7 @@ multiply(std::vector<perm_a> A, std::vector<perm_a> B)
 std::vector<basis_func>
 multiply(std::vector<perm_a> O, std::vector<basis_func> wf)
 {
-	bool debug=true;
+	bool debug=false;
 
 	//multiply and sort a list of permutations and a list of basis functions
 	std::vector<basis_func> new_wf;
@@ -1234,7 +1235,16 @@ get_irrep_basis(std::vector<int> F, std::vector<basis_func> wf )
 	using std::vector;
 
 	//get basis
-	bool debug=true;
+	bool debug=false;
+	if(debug)
+	{
+		cout << "\nIn young:get_irrep_basis(F= ";
+		for( auto f : F) cout << f << " ";
+		cout << ", wf= ";
+	       	for( auto v : wf) print_bf(v);	
+		cout << ")\n\n ";
+	}
+
 	
 	Matrix S;
 	int N=0;		//number of electrons 
@@ -1290,7 +1300,7 @@ get_irrep_basis(std::vector<int> F, std::vector<basis_func> wf )
 	int  ctr=0;
 	do{
 		invpT.perm=invperm(perm);
-		C.push_back(multiply(E0,multiply({invpT},wf)));
+		C.push_back(multiply(multiply({invpT},E0),wf));
 
 		if(debug)
 		{
@@ -1328,19 +1338,23 @@ get_irrep_basis(std::vector<int> F, std::vector<basis_func> wf )
 
 		Matrix s_evecs=eigensolver.eigenvectors();
 		Matrix s_evals=eigensolver.eigenvalues();
-		std::cout << "S: \n" << S << "\n";
-		cout << "Eigen system:\n";
-		std::cout << "S eigenvalues: \n" << s_evals << "\n";
-		std::cout << "S eigenvectors: \n" << s_evecs << "\n";
+
+		if(debug)
+		{
+			std::cout << "S: \n" << S << "\n";
+			cout << "Eigen system:\n";
+			std::cout << "S eigenvalues: \n" << s_evals << "\n";
+			//std::cout << "S eigenvectors: \n" << s_evecs << "\n";
+		}
 
 
 		rank=0;
 		for(int j=0; j<s_evals.rows(); j++)
-			if( abs(s_evals(j)) < 1e-5 )
+			if( s_evals(j) < 1e-5 )
 			{
 				if(debug)
 				{
-					std::cout << "rejected j: " << j << "\n"; 
+					std::cout << "rejected  eigenvalue: " << s_evals(j) <<  " , j=" << j << "\n"; 
 
 					for(int k=0; k<C[j].size(); k++)
 						print_bf(C[j][k]);
@@ -1460,6 +1474,7 @@ invert_matrix(Matrix X)
 std::vector<perm_a>
 wigner_op(int i, int j,int Nelec, int gS, std::vector<std::vector<basis_func>> C, Matrix S)
 {
+	bool debug=false;
 	using std::vector;
 	using std::cout;
 
@@ -1474,17 +1489,24 @@ wigner_op(int i, int j,int Nelec, int gS, std::vector<std::vector<basis_func>> C
 	P.perm={0,1,2};
 
 
-	cout << "dl: " << dl << "\n";
-	cout << "h: " << h << "\n";
-	cout << "dl/h: " << (dl*1.0)/(1.0*h) << "\n";
-	cout << "len(C): " << C.size() << "\n"; 
+	if(debug)
+	{
+		cout << "dl: " << dl << "\n";
+		cout << "h: " << h << "\n";
+		cout << "dl/h: " << (dl*1.0)/(1.0*h) << "\n";
+		cout << "len(C): " << C.size() << "\n"; 
+	}
 
 	perm_a summand;
 
 	do //loop over permutations
 	{
-		cout <<"\n";
-		print_perm(P);
+		if(debug)
+		{
+			cout <<"Permutation: ";
+			print_perm(P);
+		}
+
 		vector<vector<basis_func>> out=C;
 		for(int i=0; i<C.size(); i++)
 			out[i]=multiply({P},C[i]);
@@ -1496,16 +1518,26 @@ wigner_op(int i, int j,int Nelec, int gS, std::vector<std::vector<basis_func>> C
 		for(int i=0; i<out2.cols(); i++)
 			for(int j=0; j<out2.rows(); j++)
 				out2(i,j)=dot(C[i],out[j]);
-		cout << "C^+ (PC) \n" << out2 << "\n";
+
+		if(debug)
+			cout << "C^+ (PC) \n" << out2 << "\n";
 
 		Matrix D_P = invS*out2;
-		cout << "S^-1 C^+ (PC) \n" << D_P << "\n";
 
-		cout << "invP: \n";
+		if(debug)
+			cout << "S^-1 C^+ (PC) \n" << D_P << "\n";
+
+		//cout << "invP: \n";
+		
 	       	summand.perm=invperm(P.perm);
-		summand.coeff= (dl*1.0)*D_P(i,j)/(1.0*h);
+		// Wigner operator $W_{i,j}$ is proportional to $DP_{j,i}$, not
+		// $DP_{i,j}$. This is a result of using the orthogonality 
+		// theorem. That appears in W_{i,j} should be
+		//
+		// See elementary group theory notes equations (32-34)  
+		summand.coeff= (dl*1.0)*D_P(j,i)/(1.0*h);
 
-		if(summand.coeff!=0)
+		if(fabs(summand.coeff)>1e-12)
 			Wij.push_back(summand);
 
 	}while( std::next_permutation(P.perm.begin() , P.perm.end()) );
@@ -1514,7 +1546,7 @@ wigner_op(int i, int j,int Nelec, int gS, std::vector<std::vector<basis_func>> C
 }
 
 int 
-main()
+test_wigner()
 {	
 	using std::vector;
 	using std::cout;
@@ -1580,36 +1612,74 @@ main()
 	int i=0,j=0;
 	auto Wij=wigner_op(i,j,N,ms,C,S);
 
-	std::cout << "i = " << i << ", j = " << j << " W_{i,j}:\n";
+	std::cout << "\ni = " << i << ", j = " << j << "\n--\nW_{i,j}:\n";
 	for( auto p : Wij )
 		print_perm(p);
 	cout << "\n";
 
 	vector<perm_a> Wij2=multiply(Wij,Wij);
 
+	/*
 	cout << "W_{i,j}^2: \n";
 	for(auto p : Wij2)
 		print_perm(p);
 	cout << "\n";
-
+	*/
 
 	i=1,j=0;
 	Wij=wigner_op(i,j,N,ms,C,S);
 
-	std::cout << "i = " << i << ", j = " << j << " W_{i,j}:\n";
+	std::cout << "\ni = " << i << ", j = " << j << "\n--\nW_{i,j}:\n";
 	for( auto p : Wij )
 		print_perm(p);
 	cout << "\n";
 
 	Wij2=multiply(Wij,Wij);
 
+	/*
 	cout << "W_{i,j}^2: \n";
 	for(auto p : Wij2)
 		print_perm(p);
 	cout << "\n";
+	*/
+
+	auto Wji=wigner_op(j,i,N,ms,C,S);
+
+	std::cout << "\nj = " << j << ", i = " << i << "\n--\nW_{j,i}:\n";
+	for( auto p : Wji )
+		print_perm(p);
+	cout << "\n";
+
+	auto WijWji=multiply(Wij,Wji);
+	auto WjiWij=multiply(Wji,Wij);
+
+	/*
+	cout << "W_{j,i}* W_{i,j}: \n";
+	for(auto p : WjiWij)
+		print_perm(p);
+	cout << "\n";
+
+	cout << "W_{i,j}* W_{j,i}: \n";
+	for(auto p : WijWji)
+		print_perm(p);
+	cout << "\n";
+	*/
+
+	cout << "i = " << i << "\n--\nW_{i,i}:\n";
+	for(auto p: wigner_op(i,i,N,ms,C,S))
+		print_perm(p);
+	cout << "\n";
+	
 
 
+	return 0;
+}
 
+int
+main()
+{
+	//test_wigner();
+	
 	return 0;
 }
 
