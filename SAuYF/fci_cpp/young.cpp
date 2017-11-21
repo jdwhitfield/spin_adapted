@@ -5,26 +5,11 @@
 #include<algorithm>
 #include<Eigen>
 #include"weyl.h"
+#include"young.h"
 
 using std::cout; 
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
         Matrix;  // import dense, dynamically sized Matrix type from Eigen;
-
-class basis_func
-{
-	public:
-		double coeff=1;
-		std::vector<int> orbs;
-}; // this is the same as the perm_a class right now.
-class perm_a
-{
-	public:
-		std::vector<int> perm;
-		double coeff=1;
-		int    n=0;
-	// TODO: overload the multiply operator
-	
-};
 
 //test functions
 int                   test_symmetrizer();
@@ -137,7 +122,7 @@ perm_multiply(const  std::vector<int>& p1, const std::vector<int>& p2)
 }
 
 basis_func
-multiply(perm_a P, basis_func v)
+multiply(const perm_a P,const basis_func v)
 {
 	bool debug=false;
 	using std::cout;
@@ -160,6 +145,7 @@ multiply(perm_a P, basis_func v)
 	return pv;
 
 }
+
 bool
 compare_perms(perm_a f1, perm_a f2)
 {
@@ -185,6 +171,7 @@ compare_perms(perm_a f1, perm_a f2)
 	return true;
 
 }
+
 bool
 compare_bfs(basis_func f1, basis_func f2)
 {
@@ -277,7 +264,6 @@ multiply(std::vector<perm_a> A, std::vector<perm_a> B)
 	return AB;
 
 }
-
 
 std::vector<basis_func>
 multiply(std::vector<perm_a> O, std::vector<basis_func> wf)
@@ -388,8 +374,52 @@ multiply(perm_a P, std::vector<double> v)
 	return pv;
 }
 
+std::vector<basis_func>
+add(const std::vector<basis_func> A, const std::vector<basis_func> B)
+{
+	bool debug=true;
+	std::vector<basis_func> C;
+
+	for(auto a : A)
+		C.push_back(a);
+	for(auto b : B)
+		C.push_back(b);
+
+	return multiply({perm_I(A[0].orbs.size())},C);
+	
+}
+
+std::vector<basis_func>
+multiply(const double a, const std::vector<basis_func> F)
+{
+	std::vector<basis_func> G;
+	basis_func bf;
+	for(int k=0; k<F.size(); k++)
+	{
+		bf=F[k];
+		bf.coeff=bf.coeff*a;
+		
+		G.push_back(bf);
+
+	}
+
+	return G;
+}
+
+std::vector<basis_func>
+normalize(const std::vector<basis_func> wf)
+{
+	double norm2;
+	for(int k=0; k<wf.size(); k++)
+		norm2+=(wf[k].coeff)*std::conj(wf[k].coeff);
+
+	return multiply(1.0/sqrt(norm2),wf);
+}
+
+
 //
 /*  Here we don't check for like terms, better version is implemented
+//
 //
 
 //overload the * operator
@@ -424,12 +454,14 @@ multiply(std::vector<perm_a> A, std::vector<perm_a> B)
 }
 */
 
+/*
 int
 pos_ymax(const int pos, const int M, const std::vector<int> frame, const std::vector<int> tableau)
 {
 	int max_val=M-1;
 	return max_val;
 }
+*/
 
 int
 pos_ymin(const int pos,const std::vector<int> frame, std::vector<int> tableau)
@@ -605,8 +637,6 @@ sgn(std::vector<int> perm)
 {
 	return perm_matrix(perm).determinant();
 }
-
-
 
 std::vector<perm_a> 
 Ey(std::vector<int> frame_rows,std::vector<int> yT)
@@ -1150,26 +1180,69 @@ test_dot()
 }
 
 std::vector<basis_func> 
-initial_state(int N)
+initial_state(const int N, const std::vector<int> occ_orbs)
 {
 	using std::vector;
+	bool debug=false;
 
-	vector<basis_func> wf;
-	basis_func f;
-	wf.clear();
-
-	if(N!=3)
+	if(debug)
 	{
-		std::cout << "only works for N=3\n";
-		return wf;
+		cout << "in initial state...\nOccupied orbitals: ";
+		for(auto o : occ_orbs)
+			cout << o << " ";
+		cout << "\n";
 	}
 
+	vector<basis_func> wf;
+	wf.clear();
+
+	std::vector<int> primitive;
+	basis_func f;
+
+	//sort input occupied orbital list
+	primitive=occ_orbs;
+	std::sort(primitive.begin(),primitive.end());
+
+
+
 	/* RANDOM STATE */
-	double a,b,c;
-	a=.1077;
-	b=.0910;
-	c=.1015;
-	double norm2=a*a+b*b+c*c;
+	const std::vector<double> rand_nums={0.0402621714989,0.720446771216,0.113868284377,0.314375237251,0.368092160337,0.412386548763,0.0495483892997,0.814967948581,0.521897624288,0.487846464935,0.299025914147,0.455005750774};
+	
+	double norm2;
+
+	for(int m=0; m<N; m++)
+		norm2+=rand_nums[m]*rand_nums[m];
+
+
+
+	for(int m=0; m<rand_nums.size(); m++)
+	{
+
+
+		f.coeff=rand_nums[m]/sqrt(norm2);
+		f.orbs=primitive;
+
+		wf.push_back(f);
+
+		//advance primitive list, should we be looping over the number of permutations?
+		if(!std::next_permutation(primitive.begin(),primitive.end()))
+		{
+			if(debug)
+				cout << "quitting loop with m="<< m << "\n";
+			break;
+		}
+
+	}
+
+	if(debug)
+	{
+		cout << "wf= ";
+	       	for( auto v : wf) print_bf(v);	
+		cout << "\n\n";
+	}
+	return wf;
+
+	/*
 	a=a/sqrt(norm2);
 	b=b/sqrt(norm2);
 	c=c/sqrt(norm2);
@@ -1188,7 +1261,8 @@ initial_state(int N)
 	f.orbs.clear();
 	f.orbs.push_back(0);f.orbs.push_back(0);f.orbs.push_back(1);
 	wf.push_back(f);
-	return wf;
+	*/
+
 
 	/* 100 INVARIANT UNDER P_{T_0 <- T_j} = P23
 	 
@@ -1229,6 +1303,9 @@ initial_state(int N)
 	return wf;
 }
 
+/*
+ Get the basis for irrep labelled by frame F projected from a given state
+ */
 std::vector<std::vector<basis_func>> 
 get_irrep_basis(std::vector<int> F, std::vector<basis_func> wf ) 
 {
@@ -1382,6 +1459,9 @@ get_irrep_basis(std::vector<int> F, std::vector<basis_func> wf )
 	}while( std::next_permutation(perm.begin(),perm.end()) );
 
 
+	if(rank<num_ytabs)
+		cout << "Warning: input state does not span input irrep. (young::get_irrep_basis)\n";
+
 	if(debug)
 		std::cout << S << "\n";
 
@@ -1390,6 +1470,7 @@ get_irrep_basis(std::vector<int> F, std::vector<basis_func> wf )
 	return C;
 }
 
+//here we're using symmetric orthogonalization
 Matrix 
 get_ortho_matrix_X(std::vector<std::vector<basis_func>> C)
 {
@@ -1472,7 +1553,7 @@ invert_matrix(Matrix X)
 }
 
 std::vector<perm_a>
-wigner_op(int i, int j,int Nelec, int gS, std::vector<std::vector<basis_func>> C, Matrix S)
+wigner_op(int i, int j,int Nelec, int gS, std::vector<std::vector<basis_func>> C)
 {
 	bool debug=false;
 	using std::vector;
@@ -1483,6 +1564,13 @@ wigner_op(int i, int j,int Nelec, int gS, std::vector<std::vector<basis_func>> C
 
 	perm_a P;
 	vector<perm_a> Wij;
+
+	Matrix S;
+	S.resize(C.size(),C.size());
+	for(int i=0; i<S.cols(); i++)
+		for(int j=0; j<S.rows(); j++)
+			S(i,j)=dot(C[i],C[j]);
+
 	Matrix invS=invert_matrix(S);
 
 	P.coeff=1;
@@ -1530,6 +1618,7 @@ wigner_op(int i, int j,int Nelec, int gS, std::vector<std::vector<basis_func>> C
 		//cout << "invP: \n";
 		
 	       	summand.perm=invperm(P.perm);
+
 		// Wigner operator $W_{i,j}$ is proportional to $DP_{j,i}$, not
 		// $DP_{i,j}$. This is a result of using the orthogonality 
 		// theorem. That appears in W_{i,j} should be
@@ -1546,23 +1635,29 @@ wigner_op(int i, int j,int Nelec, int gS, std::vector<std::vector<basis_func>> C
 }
 
 int 
-test_wigner()
+test_wigner(std::vector<int> F, int ms)
 {	
 	using std::vector;
 	using std::cout;
-	std::vector<int> F;
-	std::vector<int> T;
 
+	/*
+	std::vector<int> F;
 	F.clear();
 	F.push_back(2);
 	F.push_back(1);
+	*/
 
-	std::cout << "Frame: " << F[0] << " " << F[1] << "\n";
-
-	int ms=2;
+	
+	std::cout << "Frame: ";
+	for(int j=0; j<F.size(); j++)
+		cout << F[j] << " " ;
+	cout << "\n";
 
 	std::cout << "spin multiplicity: " << ms << "\n";
 
+
+
+	//std::vector<int> T;
 	//T.clear();
 	//T.push_back(0);
 	//T.push_back(1);
@@ -1578,10 +1673,9 @@ test_wigner()
 
 	std::cout << "number of young tableau: " << num_ytabs << "\n";
 
-	//how to pick the initial state to make sure it has projection on all irreps?
-
-	//random state
-	vector<basis_func> wf = initial_state(N);
+	//random state with orbital 0 occupied twice and orbital 1 occupied once
+	vector<int> occ={0,0,1};
+	vector<basis_func> wf = initial_state(N,occ);
 
 	std::cout << "random state (fixed): \n"; 
 	for(auto bf : wf)
@@ -1610,7 +1704,7 @@ test_wigner()
 
 
 	int i=0,j=0;
-	auto Wij=wigner_op(i,j,N,ms,C,S);
+	auto Wij=wigner_op(i,j,N,ms,C);
 
 	std::cout << "\ni = " << i << ", j = " << j << "\n--\nW_{i,j}:\n";
 	for( auto p : Wij )
@@ -1627,7 +1721,7 @@ test_wigner()
 	*/
 
 	i=1,j=0;
-	Wij=wigner_op(i,j,N,ms,C,S);
+	Wij=wigner_op(i,j,N,ms,C);
 
 	std::cout << "\ni = " << i << ", j = " << j << "\n--\nW_{i,j}:\n";
 	for( auto p : Wij )
@@ -1643,7 +1737,7 @@ test_wigner()
 	cout << "\n";
 	*/
 
-	auto Wji=wigner_op(j,i,N,ms,C,S);
+	auto Wji=wigner_op(j,i,N,ms,C);
 
 	std::cout << "\nj = " << j << ", i = " << i << "\n--\nW_{j,i}:\n";
 	for( auto p : Wji )
@@ -1666,7 +1760,7 @@ test_wigner()
 	*/
 
 	cout << "i = " << i << "\n--\nW_{i,i}:\n";
-	for(auto p: wigner_op(i,i,N,ms,C,S))
+	for(auto p: wigner_op(i,i,N,ms,C))
 		print_perm(p);
 	cout << "\n";
 	
@@ -1678,8 +1772,80 @@ test_wigner()
 int
 main()
 {
-	//test_wigner();
+	std::vector<int> F;
+	F.clear();
+	F.push_back(2);
+	F.push_back(1);
 	
+	using std::vector; 
+
+	std::vector<basis_func> wf= initial_state(3,{0,0,1});
+
+	std::vector<std::vector<basis_func>> C = get_irrep_basis(F,wf);
+	Matrix X= get_ortho_matrix_X(C);
+
+	cout << "Basis functions for [1,1; 2]:\n"; 
+
+	// G_j = sum_m  g_m X_{mj}  
+	vector<basis_func> G0=add( multiply(X(0,0),C[0]) , multiply(X(1,0),C[1]) );
+	vector<basis_func> G1=add( multiply(X(0,1),C[0]) , multiply(X(1,1),C[1]) );
+	
+	cout << "G0 : \n";
+        for( auto f: G0 )
+		print_bf(f);
+
+	cout << "G1 : \n";
+        for( auto f: G1 )
+		print_bf(f);
+	
+	vector<perm_a> W00=wigner_op(0,0,3,2,C);
+	vector<perm_a> W10=wigner_op(1,0,3,2,C);
+
+	vector<basis_func> F0=multiply(W00,C[0]);
+	vector<basis_func> F1=multiply(W10,C[0]);
+
+	cout << "F0 : \n";
+        for( auto f: F0 )
+		print_bf(f);
+
+	cout << "normalized F0 : \n";
+	for(auto f: normalize(F0))
+		print_bf(f);
+
+	cout << "F1 : \n";
+        for( auto f: F1 )
+		print_bf(f);
+
+	cout << "Basis functions for [1,1; 3]:\n"; 
+	wf= initial_state(3,{0,0,2});
+	C=  get_irrep_basis(F,wf);
+	X= get_ortho_matrix_X(C);
+
+	G0=add( multiply(X(0,0),C[0]) , multiply(X(1,0),C[1]) );
+	G1=add( multiply(X(0,1),C[0]) , multiply(X(1,1),C[1]) );
+
+	cout << "G0 : \n";
+        for( auto f: G0 )
+		print_bf(f);
+
+	cout << "G1 : \n";
+        for( auto f: G1 )
+		print_bf(f);
+	
+	W00=wigner_op(0,0,3,2,C);
+	W10=wigner_op(1,0,3,2,C);
+
+	F0=multiply(W00,C[0]);
+	F1=multiply(W10,C[0]);
+
+	cout << "F0 : \n";
+        for( auto f: F0 )
+		print_bf(f);
+
+	cout << "F1 : \n";
+        for( auto f: F1 )
+		print_bf(f);
+
 	return 0;
 }
 
