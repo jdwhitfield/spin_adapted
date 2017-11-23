@@ -1,23 +1,16 @@
 // Functions for the symmetric group approach
 #include<iostream>
-#include<vector>
 #include<assert.h>
-#include<algorithm>
 #include<Eigen>
-#include"weyl.h"
+#include<vector>
+#include<algorithm>
 #include"young.h"
 
 using std::cout; 
-typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-        Matrix;  // import dense, dynamically sized Matrix type from Eigen;
 
 //test functions
 int                   test_symmetrizer();
 int                   test_antisymmetrizer();
-//symmetrizer
-std::vector<perm_a>   Srow(std::vector<int> frame,std::vector<int> tableau);
-//anti-symmetrizer
-std::vector<perm_a>   Acol(std::vector<int> frame,std::vector<int> tableau);
 
 void
 print_perm(perm_a P)
@@ -41,6 +34,21 @@ print_bf(basis_func bf)
 	return;
 }
 
+void
+print_wf(std::vector<basis_func> wf, bool one_line=true)
+{
+	for(auto bf : wf)
+	{
+		if(bf.coeff>0)
+			std::cout << "+";
+		std::cout << bf.coeff << " | ";
+		for(auto p : bf.orbs)
+			std::cout << p <<" ";
+		std::cout << " > ";
+		if(!one_line) cout << "\n";
+	}
+	return;
+}
 
 perm_a
 perm_I(int n)
@@ -1770,7 +1778,7 @@ test_wigner(std::vector<int> F, int ms)
 }
 
 int
-main()
+alt_young_main()
 {
 	std::vector<int> F;
 	F.clear();
@@ -1780,7 +1788,6 @@ main()
 	using std::vector; 
 
 	std::vector<basis_func> wf= initial_state(3,{0,0,1});
-
 	std::vector<std::vector<basis_func>> C = get_irrep_basis(F,wf);
 	Matrix X= get_ortho_matrix_X(C);
 

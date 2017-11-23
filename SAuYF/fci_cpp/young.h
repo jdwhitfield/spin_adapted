@@ -1,6 +1,10 @@
 #ifndef YOUNG_ALG
 #define YOUNG_ALG
 
+#include<Eigen>
+#include<vector>
+#include"weyl.h"
+
 class basis_func
 {
 	public:
@@ -19,6 +23,8 @@ class perm_a
 };
 
 
+typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+        Matrix;  // import dense, dynamically sized Matrix type from Eigen;
 
 //BASIC ALGEBRA
 perm_a                   perm_multiply(const perm_a& P1, const perm_a& P2);
@@ -44,6 +50,7 @@ Matrix                   perm_matrix(std::vector<int> perm);
 Matrix                   invert_matrix(Matrix X);
 std::vector<int>         Frows_to_Fcols(std::vector<int> Frows);
 std::vector<int>         invperm(const std::vector<int> T);
+std::vector<basis_func>  initial_state(const int N, const std::vector<int> occ_orbs);
 	
 //IRREP CONSTRUCTION
 std::vector<std::vector<basis_func>> 
@@ -73,6 +80,7 @@ bool                  isvalid_young(std::vector<int> frame_rows,
 //PRINT FUNCTIONS
 void  print_perm(perm_a);
 void  print_bf(basis_func);
+void  print_wf(std::vector<basis_func> wf, bool one_line=true);
 
 
 
