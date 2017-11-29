@@ -12,6 +12,8 @@
 #ifndef WEYL
 #define WEYL
 
+#include<libint2.hpp>
+
 int
 nchoosek(int , int);
 

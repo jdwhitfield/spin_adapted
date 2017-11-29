@@ -35,7 +35,7 @@ print_bf(basis_func bf)
 }
 
 void
-print_wf(std::vector<basis_func> wf, bool one_line=true)
+print_wf(std::vector<basis_func> wf, bool one_line)
 {
 	for(auto bf : wf)
 	{
@@ -44,7 +44,7 @@ print_wf(std::vector<basis_func> wf, bool one_line=true)
 		std::cout << bf.coeff << " | ";
 		for(auto p : bf.orbs)
 			std::cout << p <<" ";
-		std::cout << " > ";
+		std::cout << "> ";
 		if(!one_line) cout << "\n";
 	}
 	return;
