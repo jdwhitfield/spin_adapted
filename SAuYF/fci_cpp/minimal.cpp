@@ -203,6 +203,7 @@ main(int argc, char *argv[])
     print_wf(wf_init);
     cout << "\n";
 
+    auto wf=wf_init;
 
 
 
@@ -258,6 +259,10 @@ main(int argc, char *argv[])
 	 << "dot(wf_p1,wf_p1) = " << dot(projected_1,projected_1) << "\n"
 	 << "dot(wf_p0,wf_p0) = " << dot(projected_0,projected_0) << "\n";
 
+    cout << "\nNone are zero but if we consider the adjoint of W00\n"
+	 << "dot(wf, W00 wf) = " << dot(wf, multiply(W00,wf))     << "\n"
+	 << "dot(W00 wf, wf) = " << dot(multiply(W00,wf), wf)     << "\n";
+
     cout << "\n\n-------------------------------------\n\n";
     /*************************************************************************/
     //The wave functions are not orthogonal. Why not?
@@ -268,15 +273,15 @@ main(int argc, char *argv[])
     invA.clear();
 
     perm_a P123; P123.coeff=1; P123.perm={2,0,1};
+    perm_a P132; P132.coeff=1; P123.perm={1,2,0};
 
     A.push_back(P123);
-    invA.push_back(P123);
+    invA.push_back(P132);
 
-    /*
     double lambda=1;
     A[0].coeff=lambda;
+
     invA[0].coeff=1.0/lambda;
-    */
 
     auto Awf=multiply(A,wf_init);
     auto invAwf=multiply(invA,wf_init);
@@ -292,6 +297,9 @@ main(int argc, char *argv[])
     cout << "with\n<wf | A(A wf) > =? <wf | (A^2) wf >\t";
     cout << dot(wf_init,multiply(A,multiply(A,wf_init))) << " =? " 
 	 << dot(wf_init,multiply(multiply(A,A),wf_init)) << "\n\n";
+    cout << "and\n<wf | A(A wf) > =? <wf | (A^2) wf >\t";
+    cout << dot(wf_init,multiply(A,multiply(A,wf_init))) << " =? " 
+	 << dot(wf_init,multiply(multiply(A,A),wf_init)) << "\n\n";
 
 
 
@@ -300,7 +308,7 @@ main(int argc, char *argv[])
     f.orbs.clear();
     f.orbs.push_back(1);f.orbs.push_back(0);f.orbs.push_back(0);
 
-    std::vector<basis_func> wf;
+    wf.clear();
     wf.push_back(f);
 
     cout << "Let us consider a simpler wave function.\nwf:";

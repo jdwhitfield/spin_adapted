@@ -1629,7 +1629,7 @@ wigner_op(int i, int j,int Nelec, int gS, std::vector<std::vector<basis_func>> C
 
 		// Wigner operator $W_{i,j}$ is proportional to $DP_{j,i}$, not
 		// $DP_{i,j}$. This is a result of using the orthogonality 
-		// theorem. That appears in W_{i,j} should be
+		// theorem. 
 		//
 		// See elementary group theory notes equations (32-34)  
 		summand.coeff= (dl*1.0)*D_P(j,i)/(1.0*h);
