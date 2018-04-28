@@ -8,6 +8,12 @@
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
         Matrix;  // import dense, dynamically sized Matrix type from Eigen;
 
+class basis_func
+{
+	public:
+		double coeff=1;
+		std::vector<int> orbs;
+}; // this is the same as the perm_a class right now.
 class perm_a
 {
 	public:
@@ -68,7 +74,7 @@ perm_multiply(const perm_a& P1, const perm_a& P2)
 
 	for(int j=0; j<P1.perm.size(); j++)
 	{
-		p_result[j]=P1.perm[P2.perm[j]];
+		p_result[j]=P2.perm[P1.perm[j]];
 		if(debug)
 		{
 			std::cout << "p_result element " << j << " "
@@ -83,6 +89,148 @@ perm_multiply(const perm_a& P1, const perm_a& P2)
 	result.perm=p_result;
 	
 	return result;
+}
+
+std::vector<int>
+perm_multiply(const  std::vector<int>& p1, const std::vector<int>& p2)
+{
+	bool debug =false;
+	std::vector <int> ans;
+	ans.clear();
+
+	for(int j=0; j<p1.size(); j++)
+	{
+		ans[j]=p2[p1[j]];
+		if(debug)
+		{
+			std::cout << "ans element " << j << " "
+				  << ans[j] ;
+			std::cout << " (young::perm_multiply)\n";
+		}
+	}
+
+
+
+	return ans;
+}
+basis_func
+multiply(perm_a P, basis_func v)
+{
+	bool debug=true;
+	using std::cout;
+	if(P.perm.size()!=v.orbs.size())
+	{
+		std::cout << "Error in young::multiply(perm_a, basis_func), "
+			  << "incompatible sizes.\n";
+		return v;
+	}
+	basis_func pv;
+	pv.orbs.resize(v.orbs.size());
+
+	for(int j=0; j<v.orbs.size(); j++)
+	{
+		pv.orbs[j]=v.orbs[P.perm[j]];
+	}
+
+	pv.coeff=P.coeff*v.coeff;
+	return pv;
+
+}
+
+bool
+compare_bfs(basis_func f1, basis_func f2)
+{
+	int n1=f1.orbs.size();
+	int n2=f2.orbs.size();
+	if(n1<n2)
+		return n1<n2;
+	if(n2>n1)
+		return n1<n2;
+
+	//from now on we'll assume n 
+	int norbs=n1;
+
+	for(int i=0; i<norbs; i++)
+	{
+		if(f1.orbs[i] == f2.orbs[i])
+			continue;
+
+		//now assume they're unequal and return
+		return f1.orbs[i]<f2.orbs[i];
+	}
+	// in the case that they're all equal we'll end up here
+	return true;
+
+}
+std::vector<basis_func>
+multiply(std::vector<perm_a> O, std::vector<basis_func> wf)
+{
+	//multiply and sort a list of permutations and a list of basis functions
+	
+	std::vector<basis_func> new_wf;
+	for(perm_a p: O)
+		for( basis_func bf : wf)
+		{
+			//insert it into the list
+			new_wf.push_back(multiply(p,bf));
+		}
+
+	//first sort 
+	std::sort(new_wf.begin(),new_wf.end(),compare_bfs);
+
+	//then check for repetitions
+	int like_terms;
+	int terms;
+	do
+	{
+		like_terms=0;
+		terms=new_wf.size();
+		for(int j=0; j<terms-1; j++)
+		{
+			//the size of new_wf changes dynamically so we need to re-evaluate if we can execute the next line
+			if( j+1 >= new_wf.size() )
+				break;
+
+			if(new_wf[j].orbs == new_wf[j+1].orbs)
+			{
+				new_wf[j].coeff=new_wf[j].coeff+new_wf[j+1].coeff;
+				new_wf.erase(new_wf.begin()+j+1);
+				like_terms++;
+			}
+
+		}
+
+	}while(like_terms!=0);
+		
+	return new_wf;
+
+
+
+	
+
+
+}
+
+
+std::vector<double>
+multiply(perm_a P, std::vector<double> v)
+{
+	if(P.perm.size() != v.size())
+	{
+		std::cout << "Error in young::multiply(perm_a, vector<int>), "
+			  << "incompatible sizes.\n";
+		return v;
+	}
+
+	std::vector<double> pv;
+	pv.resize(v.size());
+
+	for(int j=0; j<P.perm.size(); j++)
+	{
+		pv[j] = v[P.perm[j]]; // don't use coefficient here. Just keep it as
+				      // a rearranged list of orbitals; 
+	}
+	return pv;
 }
 
 //overload the * operator
@@ -415,6 +563,7 @@ get_next_young_tableau(const std::vector<int> frame, std::vector<int>& tableau)
 	return 1;
 
 }
+
 std::vector<int>
 invperm(std::vector<int> T)
 {
@@ -689,6 +838,7 @@ Acol(std::vector<int> frame,std::vector<int> tableau)
 	}
 	return A;
 }
+
 int
 test_antisymmetrizer()
 {
@@ -738,7 +888,6 @@ test_antisymmetrizer()
 	
 	return 0;
 }
-
 
 int
 test_invperm()
@@ -793,14 +942,19 @@ main()
 	int num_ytabs=num_young(N,ms);
 
 	//randomly generate f
-	std::vector<double> f;
-	f.clear();
-	f.push_back(.10342);
-	f.push_back(.31545);
-	f.push_back(.13421);
+	basis_func f;
+	//for(int k=0; k< factorial[N]; k++)
+	//{
+	f.coeff=1;
+	f.orbs.push_back(0);
+	f.orbs.push_back(0);
+	f.orbs.push_back(1);
 
+	//}
+
+	/*
 	double normf=0;
-	for(int k=0; k<f.size(); k++)
+	for(int k=0; k<f.orbs.size(); k++)
 	{
 		normf=normf+f[k]*f[k];
 	}
@@ -809,6 +963,25 @@ main()
 	for(int k=0; k<f.size(); k++)
 		f[k]=f[k]/normf;
 
+	std::cout << "f : " << f[0] << " " << f[1] << " " << f[2] << "\n";
+	*/
+
+	//apply Young operators to F
+	//first we need to be able to apply a permutation to a basis vector
+	//then we'll need to be able to apply a permutation to a set of basis vectors
+	perm_a P12;
+	P12.perm={0,2,1};
+	
+	basis_func p12_f=multiply(P12,f);
+	std::cout << " P_12 f coefficient and values: ";
+	std::cout << p12_f.coeff << "\n";
+	for(int k=0; k<p12_f.orbs.size(); k++)
+	{
+		std::cout << p12_f.orbs[k] << " ";
+	}
+	std::cout << "\n";
+	
+	
 	
 	std::vector<perm_a> E00=Ey(F,{0,1,2});
 	std::vector<perm_a> E11=Ey(F,{0,2,1});
