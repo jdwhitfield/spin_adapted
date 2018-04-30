@@ -54,10 +54,12 @@ std::vector<basis_func>  initial_state(const int N, const std::vector<int> occ_o
 	
 //IRREP CONSTRUCTION
 std::vector<std::vector<basis_func>> 
-                         get_irrep_basis(std::vector<int>, std::vector<basis_func>);
-Matrix                   get_ortho_matrix_X(std::vector<std::vector<basis_func>> C);
-std::vector<perm_a>      wigner_op(int i, int j, int Nelec, int gS, 
-		                   std::vector<std::vector<basis_func>> C);
+                      get_irrep_basis(std::vector<int>, std::vector<basis_func>);
+Matrix                get_ortho_matrix_X(std::vector<std::vector<basis_func>> C);
+std::vector<perm_a>   wigner_op(int i, int j, int Nelec, int gS, 
+		                std::vector<std::vector<basis_func>> C, 
+		     	   bool debug=false);
+Matrix                irrepP(perm_a P, const std::vector<std::vector<basis_func>> C);
 
 //SYMMETRIC GROUP
 std::vector<perm_a>   Ey(std::vector<int> frame_rows,std::vector<int> yT);

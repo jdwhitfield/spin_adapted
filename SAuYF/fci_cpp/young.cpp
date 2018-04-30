@@ -15,7 +15,7 @@ int                   test_antisymmetrizer();
 void
 print_perm(perm_a P)
 {
-	std::cout << P.coeff << " * ";
+	if(P.coeff!=1) std::cout << P.coeff << " * ";
 	for(auto p : P.perm)
 		std::cout << p <<" ";
 	std::cout << "\n";
@@ -1561,9 +1561,10 @@ invert_matrix(Matrix X)
 }
 
 std::vector<perm_a>
-wigner_op(int i, int j,int Nelec, int gS, std::vector<std::vector<basis_func>> C)
+wigner_op(int i, int j,int Nelec, int gS, 
+	  std::vector<std::vector<basis_func>> C, 
+	  bool debug)
 {
-	bool debug=false;
 	using std::vector;
 	using std::cout;
 
@@ -1637,9 +1638,46 @@ wigner_op(int i, int j,int Nelec, int gS, std::vector<std::vector<basis_func>> C
 		if(fabs(summand.coeff)>1e-12)
 			Wij.push_back(summand);
 
-	}while( std::next_permutation(P.perm.begin() , P.perm.end()) );
+	}while(std::next_permutation(P.perm.begin(), P.perm.end()));
 
 	return Wij;
+}
+
+Matrix
+irrepP(perm_a P, const std::vector<std::vector<basis_func>> C)
+{
+	using std::vector;
+	bool debug=false;
+
+	Matrix S;
+	S.resize(C.size(),C.size());
+	for(int i=0; i<S.cols(); i++)
+		for(int j=0; j<S.rows(); j++)
+			S(i,j)=dot(C[i],C[j]);
+
+
+	vector<vector<basis_func>> out=C;
+	for(int i=0; i<C.size(); i++)
+		out[i]=multiply({P},C[i]);
+
+	//take dot product with each basis function to get D
+	//i.e. C^+ (PC)
+
+
+	Matrix out2=S; //just because S will have the correct dimensions
+
+	//overwrite everything with
+	for(int i=0; i<out2.cols(); i++)
+		for(int j=0; j<out2.rows(); j++)
+			out2(i,j)=dot(C[i],out[j]);
+
+	if(debug) cout << "C^+ (PC) \n" << out2 << "\n";
+
+	Matrix D_P = invert_matrix(S)*out2;
+
+	if(debug) cout << "S^-1 C^+ (PC) \n" << D_P << "\n";
+
+	return D_P;
 }
 
 int 
@@ -1776,6 +1814,80 @@ test_wigner(std::vector<int> F, int ms)
 
 	return 0;
 }
+/*
+void
+test_orthogonality_theorem()
+{
+	using std::vector;
+	using std::cout;
+
+	int dl=num_young(Nelec,gS);
+	int h = fac[Nelec];
+
+	perm_a P;
+	vector<perm_a> Wij;
+
+	Matrix S;
+	S.resize(C.size(),C.size());
+	for(int i=0; i<S.cols(); i++)
+		for(int j=0; j<S.rows(); j++)
+			S(i,j)=dot(C[i],C[j]);
+
+	Matrix invS=invert_matrix(S);
+
+	P.coeff=1;
+	P.perm={0,1,2};
+
+
+	cout << "dl: " << dl << "\n";
+	cout << "h: " << h << "\n";
+	cout << "dl/h: " << (dl*1.0)/(1.0*h) << "\n";
+	cout << "len(C): " << C.size() << "\n"; 
+
+	perm_a summand;
+
+	do //loop over permutations
+	{
+		
+		cout <<"Permutation: ";
+		print_perm(P);
+
+		vector<vector<basis_func>> out=C;
+		for(int i=0; i<C.size(); i++)
+			out[i]=multiply({P},C[i]);
+
+		//take dot product with each basis function to get D
+		//i.e. C^+ (PC)
+
+		Matrix out2=S; //just because S has the correct dimensions
+		for(int i=0; i<out2.cols(); i++)
+			for(int j=0; j<out2.rows(); j++)
+				out2(i,j)=dot(C[i],out[j]);
+
+		cout << "C^+ (PC) \n" << out2 << "\n";
+
+		Matrix D_P = invS*out2;
+
+		cout << "S^-1 C^+ (PC) \n" << D_P << "\n";
+		
+	       	summand.perm=invperm(P.perm);
+
+		// Wigner operator $W_{i,j}$ is proportional to $DP_{j,i}$, not
+		// $DP_{i,j}$. This is a result of using the orthogonality 
+		// theorem. 
+		//
+		// See elementary group theory notes equations (32-34)  
+		summand.coeff= (dl*1.0)*D_P(j,i)/(1.0*h);
+
+		if(fabs(summand.coeff)>1e-12)
+			Wij.push_back(summand);
+
+	}while(std::next_permutation(P.perm.begin(), P.perm.end()));
+
+}
+*/
+
+
 
 int
 alt_young_main()
