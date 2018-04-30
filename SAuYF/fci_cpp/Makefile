@@ -16,13 +16,22 @@ LIBSLibint      =-L/usr/local/lib  -L/usr/local/libint/2.4.0-beta.3/lib -lint2
 INCLUDESEig     =-I/usr/local/include/eigen/Eigen -I/usr/local/include/eigen -I/usr/local/include/ -I/usr/include/eigen/Eigen -I/usr/include/eigen3/Eigen -I/usr/include/Eigen/ -I/usr/include/Eigen/Eigen
 LIBSLapack	=-llapack   -llapacke  
 LIBSMac         =-framework accelerate
-LIBS	        =$(LIBSMac) -lm -lgmp -lgmpxx $(LIBSLapack) $(LIBSLibint) 
+LIBS	        =-lm -lgmp -lgmpxx $(LIBSLapack) $(LIBSLibint) 
 INCLUDES        =$(INCLUDESLibint)  $(INCLUDESEig)
 
-all: young
+all: minimal	
+
+test_wigner_projectors: test_wigner_projectors.cpp weyl.o young.o
+	$(CXX) test_wigner_projectors.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) weyl.o young.o $(LIBS) -o test_wigner_projectors
+
+test_irrep_orthogonality: test_irrep_orthogonality.cpp weyl.o young.o
+	$(CXX) test_irrep_orthogonality.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) weyl.o young.o $(LIBS) -o test_irrep_orthogonality
+
+young.o: young.cpp 
+	$(CXX) $(CXXFLAGS) $(DEBUG_FLAG) $(INCLUDESEig) $(INCLUDESLibint) young.cpp -c -o young.o
 
 young: young.cpp weyl.o
-	$(CXX) $(CXXFLAGS) $(DEBUG_FLAG) $(INCLUDESEig) young.cpp weyl.o -o young; ./young > out
+	$(CXX) $(CXXFLAGS) $(DEBUG_FLAG) $(INCLUDESEig) $(INCLUDESLibint) young.cpp weyl.o -o young; ./young > out; beep
 
 weyl: weyl.cpp
 	g++ weyl.cpp -std=c++11 -o weyl; ./weyl > output
@@ -30,8 +39,8 @@ weyl: weyl.cpp
 weyl.o: weyl.cpp
 	g++ weyl.cpp -std=c++11 -c -o weyl.o
 
-minimal: minimal.cpp weyl.o
-	$(CXX) minimal.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) weyl.o -o minimal; ./minimal > out
+minimal: minimal.cpp weyl.o young.o
+	$(CXX) minimal.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) weyl.o young.o $(LIBS) -o minimal; ./minimal > out
 
 #minimal.o: minimal.cpp ci_matrix.cpp
 #	$(CXX) minimal.cpp $(CXXFLAGS) $(INCLUDESLibint) $(INCLUDESEig) -c -o minimal.o

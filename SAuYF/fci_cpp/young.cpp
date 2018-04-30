@@ -34,7 +34,7 @@ std::vector<perm_a>   Acol(std::vector<int> frame,std::vector<int> tableau);
 void
 print_perm(perm_a P)
 {
-	std::cout << P.coeff << " * ";
+	if(P.coeff!=1) std::cout << P.coeff << " * ";
 	for(auto p : P.perm)
 		std::cout << p <<" ";
 	std::cout << "\n";
@@ -917,7 +917,572 @@ test_invperm()
 
 	return 0;
 }
+<<<<<<< HEAD
  
+=======
+
+double
+dot(std::vector<basis_func> L,std::vector<basis_func> R)
+{
+	//this function can probably be improved to O(N) 
+	double dot=0;
+	for( basis_func a : L)
+		for( basis_func b : R)
+		{
+			if(a.orbs==b.orbs)
+				dot=dot+a.coeff*b.coeff;
+		}
+
+	return dot;
+}
+
+void
+test_dot()
+{
+	using std::vector;
+
+	vector<basis_func> wf;
+	basis_func f;
+	wf.clear();
+
+	f.coeff= +1/sqrt(3);f.orbs.clear();
+	f.orbs.push_back(1);f.orbs.push_back(0);f.orbs.push_back(0);
+	wf.push_back(f);
+
+	f.coeff= -2/sqrt(3);f.orbs.clear();
+	f.orbs.push_back(0);f.orbs.push_back(1);f.orbs.push_back(0);
+	wf.push_back(f);
+
+	f.coeff= +1/sqrt(3);f.orbs.clear();
+	f.orbs.push_back(0);f.orbs.push_back(0);f.orbs.push_back(1);
+	wf.push_back(f);
+
+	std::cout << " state 1 : \n"; // somewhat random initial state
+	for(auto bf: wf)
+		print_bf(bf);
+	std::cout << "Norm^2 : " << dot(wf,wf) << "\n"; 
+
+	vector<basis_func> wf2;
+	wf2.clear();
+
+	//how to pick the initial state to make sure it has projection on all irreps?
+	f.coeff= +2/sqrt(3);f.orbs.clear();
+	f.orbs.push_back(1);f.orbs.push_back(0);f.orbs.push_back(0);
+	wf2.push_back(f);
+
+	f.coeff= -2/sqrt(3);f.orbs.clear();
+	f.orbs.push_back(0);f.orbs.push_back(1);f.orbs.push_back(0);
+	wf2.push_back(f);
+
+	f.coeff= +1/sqrt(3);f.orbs.clear();
+	f.orbs.push_back(0);f.orbs.push_back(0);f.orbs.push_back(1);
+	wf2.push_back(f);
+
+	std::cout << " state 2 : \n"; // somewhat random initial state
+	for(auto bf: wf2)
+		print_bf(bf);
+	std::cout << "Norm^2 : " << dot(wf2,wf2) << "\n"; 
+
+	std::cout << " state 1 . state 2 : " << dot(wf,wf2) << "\n";
+	std::cout << " (2/3) + (4/3) + 1/3 = " << 7/3. << "\n";
+
+	
+	return;
+}
+
+std::vector<basis_func> 
+initial_state(const int N, const std::vector<int> occ_orbs)
+{
+	using std::vector;
+	bool debug=false;
+
+	if(debug)
+	{
+		cout << "in initial state...\nOccupied orbitals: ";
+		for(auto o : occ_orbs)
+			cout << o << " ";
+		cout << "\n";
+	}
+
+	vector<basis_func> wf;
+	wf.clear();
+
+	std::vector<int> primitive;
+	basis_func f;
+
+	//sort input occupied orbital list
+	primitive=occ_orbs;
+	std::sort(primitive.begin(),primitive.end());
+
+
+
+	/* RANDOM STATE */
+	const std::vector<double> rand_nums={0.0402621714989,0.720446771216,0.113868284377,0.314375237251,0.368092160337,0.412386548763,0.0495483892997,0.814967948581,0.521897624288,0.487846464935,0.299025914147,0.455005750774};
+	
+	double norm2;
+
+	for(int m=0; m<N; m++)
+		norm2+=rand_nums[m]*rand_nums[m];
+
+
+
+	for(int m=0; m<rand_nums.size(); m++)
+	{
+
+
+		f.coeff=rand_nums[m]/sqrt(norm2);
+		f.orbs=primitive;
+
+		wf.push_back(f);
+
+		//advance primitive list, should we be looping over the number of permutations?
+		if(!std::next_permutation(primitive.begin(),primitive.end()))
+		{
+			if(debug)
+				cout << "quitting loop with m="<< m << "\n";
+			break;
+		}
+
+	}
+
+	if(debug)
+	{
+		cout << "wf= ";
+	       	for( auto v : wf) print_bf(v);	
+		cout << "\n\n";
+	}
+	return wf;
+
+	/*
+	a=a/sqrt(norm2);
+	b=b/sqrt(norm2);
+	c=c/sqrt(norm2);
+
+	f.coeff= a;
+	f.orbs.clear();
+	f.orbs.push_back(1);f.orbs.push_back(0);f.orbs.push_back(0);
+	wf.push_back(f);
+
+	f.coeff= b;
+	f.orbs.clear();
+	f.orbs.push_back(0);f.orbs.push_back(1);f.orbs.push_back(0);
+	wf.push_back(f);
+
+	f.coeff= c;
+	f.orbs.clear();
+	f.orbs.push_back(0);f.orbs.push_back(0);f.orbs.push_back(1);
+	wf.push_back(f);
+	*/
+
+
+	/* 100 INVARIANT UNDER P_{T_0 <- T_j} = P23
+	 
+	f.coeff= 1;
+	f.orbs.clear();
+	f.orbs.push_back(1);f.orbs.push_back(0);f.orbs.push_back(0);
+	wf.push_back(f);
+
+	 */
+
+	/* 010 
+	f.coeff= 1;
+	f.orbs.clear();
+	f.orbs.push_back(0);f.orbs.push_back(1);f.orbs.push_back(0);
+	wf.push_back(f);
+	 */
+
+	/* 001  */
+	f.coeff= 1;
+	f.orbs.clear();
+	f.orbs.push_back(0);f.orbs.push_back(0);f.orbs.push_back(1);
+	wf.push_back(f);
+
+	/* 100 + 010 + 001 
+	f.coeff=1/sqrt(3);
+	f.orbs.clear();f.orbs.push_back(0);f.orbs.push_back(0);f.orbs.push_back(1);
+	wf.push_back(f);
+
+	f.coeff=1/sqrt(3);
+	f.orbs.clear();f.orbs.push_back(0);f.orbs.push_back(1);f.orbs.push_back(0);
+	wf.push_back(f);
+
+	f.coeff=1/sqrt(3);
+	f.orbs.clear();f.orbs.push_back(1);f.orbs.push_back(0);f.orbs.push_back(0);
+	wf.push_back(f);
+	*/
+
+	return wf;
+}
+
+/*
+ Get the basis for irrep labelled by frame F projected from a given state
+ */
+std::vector<std::vector<basis_func>> 
+get_irrep_basis(std::vector<int> F, std::vector<basis_func> wf ) 
+{
+	using std::vector;
+
+	//get basis
+	bool debug=false;
+	if(debug)
+	{
+		cout << "\nIn young:get_irrep_basis(F= ";
+		for( auto f : F) cout << f << " ";
+		cout << ", wf= ";
+	       	for( auto v : wf) print_bf(v);	
+		cout << ")\n\n ";
+	}
+
+	
+	Matrix S;
+	int N=0;		//number of electrons 
+	int num_ytabs;		//number of young tableaux
+	int unpaired=0;		//unpaired boxes
+	double s;		//spin quantum number
+	int ms;			//degeneracy, 2s+1
+	std::vector<int> perm;  //integer permutation variable
+	perm_a invpT;		//permutation algebraic options
+	int rank;		//rank of the overlap matrix
+
+	for(int k=0; k<F.size(); k++)
+	{
+		//count number of boxes
+		N=N+F[k];
+		if(F[k]==1)
+			unpaired++;
+	}
+
+	s  = unpaired*.5;
+	ms = 2*s+1;
+	num_ytabs=num_young(N,ms);
+
+	//identity perm
+	perm.clear();
+	for(int i=0; i<N; i++)
+		perm.push_back(i);
+
+	//pull young operator
+	auto E0= Ey(F,perm);
+
+	if(debug)
+	{
+		std::cout << "E0:\n"; 
+		for(auto p : E0)
+			print_perm(p);
+		std::cout << "\nwf:\n"; 
+		for( basis_func bf : wf)
+		 	print_bf(bf);
+		std::cout << "\nE0*wf\n";
+		for( basis_func bf : multiply(E0,wf))
+		 	print_bf(bf);
+		cout << "\n";
+
+
+	}
+
+	vector<vector<basis_func>> C;
+	C.clear();
+
+	//std::cout << "num+ytabs " << num_ytabs << "\n";
+
+	int  ctr=0;
+	do{
+		invpT.perm=invperm(perm);
+		C.push_back(multiply(multiply({invpT},E0),wf));
+
+		if(debug)
+		{
+			std::cout << "iteration: "<< ctr++ << ", perm: ";
+			print_perm(invpT);
+
+
+			std::cout << "C matrix: \n";
+
+			for(int j=0; j<C.size(); j++)
+			{
+				std::cout << j << ": \n";
+				for(int k=0; k<C[j].size(); k++)
+					print_bf(C[j][k]);
+			}
+			std::cout << "--\n\n";
+		}
+
+
+		if(C.size() ==1 )
+			continue;
+
+		S.resize(C.size(),C.size());
+		for(int i=0; i<S.cols(); i++)
+			for(int j=0; j<S.rows(); j++)
+				S(i,j)=dot(C[i],C[j]);
+
+		Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(S);
+
+		if (eigensolver.info() != Eigen::Success) 
+		{
+			std::cout << "Failed to solve eigensystem\n";
+			abort();
+		}
+
+		Matrix s_evecs=eigensolver.eigenvectors();
+		Matrix s_evals=eigensolver.eigenvalues();
+
+		if(debug)
+		{
+			std::cout << "S: \n" << S << "\n";
+			cout << "Eigen system:\n";
+			std::cout << "S eigenvalues: \n" << s_evals << "\n";
+			//std::cout << "S eigenvectors: \n" << s_evecs << "\n";
+		}
+
+
+		rank=0;
+		for(int j=0; j<s_evals.rows(); j++)
+			if( s_evals(j) < 1e-5 )
+			{
+				if(debug)
+				{
+					std::cout << "rejected  eigenvalue: " << s_evals(j) <<  " , j=" << j << "\n"; 
+
+					for(int k=0; k<C[j].size(); k++)
+						print_bf(C[j][k]);
+					std::cout << "\n";
+				}
+				C.pop_back();
+
+				break;
+			}
+			else
+			{
+				if(debug)
+				{
+					std::cout << "accepted j: " << j; 
+					for(int k=0; k<C[j].size(); k++)
+						print_bf(C[j][k]);
+					std::cout << "\n";
+				}
+				rank=rank+1;
+			}
+
+		if(rank==num_ytabs)
+			break;
+
+	}while( std::next_permutation(perm.begin(),perm.end()) );
+
+
+	if(rank<num_ytabs)
+		cout << "Warning: input state does not span input irrep. (young::get_irrep_basis)\n";
+
+	if(debug)
+		std::cout << S << "\n";
+
+	if(debug) std::cout << "Size of C: " << C.size() << "\n";
+
+	return C;
+}
+
+//here we're using symmetric orthogonalization
+Matrix 
+get_ortho_matrix_X(std::vector<std::vector<basis_func>> C)
+{
+	bool debug=false;
+
+	//overlap matrix
+	Matrix S;
+	S.resize(C.size(),C.size());
+
+	for(int i=0; i<S.cols(); i++)
+		for(int j=0; j<S.rows(); j++)
+			S(i,j)=dot(C[i],C[j]);
+
+	Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(S);
+
+	if (eigensolver.info() != Eigen::Success) 
+	{
+		std::cout << "Failed to solve eigensystem\n";
+		abort();
+	}
+
+	Matrix s=eigensolver.eigenvalues();
+	Matrix U=eigensolver.eigenvectors();
+
+	Matrix x=s;
+	Matrix invs=s;
+
+	for(int j=0; j<x.rows(); j++)
+	{
+		x(j)=1/sqrt(s(j));
+		invs(j)=1/(s(j));
+	}
+
+	Matrix invS=U*invs.asDiagonal()*U.adjoint();
+
+	if(debug)
+	{
+		std::cout << "S*inverse(S): \n"
+		     << S*invS << "\n";
+
+		std::cout << "s: ";
+		for( int j=0; j<x.rows(); j++)
+			std::cout << s(j) << " ";
+		std::cout << "\n";
+
+		std::cout << "x: ";
+		for( int j=0; j<x.rows(); j++)
+			std::cout << x(j) << " ";
+		std::cout << "\n";
+	}
+
+	Matrix X=x.asDiagonal(); //*U.adjoint(); 
+
+	if(debug)
+	{
+		std::cout << "X=[" << X.rows() << "," <<  X.cols() << "]\n";
+		std::cout << "U=[" << U.rows() << "," <<  U.cols() << "]\n";
+	}
+
+	return U*x.asDiagonal()*U.adjoint();
+}
+
+Matrix
+invert_matrix(Matrix X)
+{
+	Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(X);
+
+	Matrix evals=eigensolver.eigenvalues();
+	Matrix U=eigensolver.eigenvectors();
+	Matrix invx=evals;
+
+	for(int j=0; j<X.rows(); j++)
+	{
+		invx(j)=1/(evals(j));
+	}
+
+	Matrix invX= U * invx.asDiagonal() * U.adjoint();
+
+	return invX;
+}
+
+std::vector<perm_a>
+wigner_op(int i, int j,int Nelec, int gS, 
+	  std::vector<std::vector<basis_func>> C, 
+	  bool debug)
+{
+	using std::vector;
+	using std::cout;
+
+	int dl=num_young(Nelec,gS);
+	int h = fac[Nelec];
+
+	perm_a P;
+	vector<perm_a> Wij;
+
+	Matrix S;
+	S.resize(C.size(),C.size());
+	for(int i=0; i<S.cols(); i++)
+		for(int j=0; j<S.rows(); j++)
+			S(i,j)=dot(C[i],C[j]);
+
+	Matrix invS=invert_matrix(S);
+
+	P.coeff=1;
+	P.perm={0,1,2};
+
+
+	if(debug)
+	{
+		cout << "dl: " << dl << "\n";
+		cout << "h: " << h << "\n";
+		cout << "dl/h: " << (dl*1.0)/(1.0*h) << "\n";
+		cout << "len(C): " << C.size() << "\n"; 
+	}
+
+	perm_a summand;
+
+	do //loop over permutations
+	{
+		if(debug)
+		{
+			cout <<"Permutation: ";
+			print_perm(P);
+		}
+
+		vector<vector<basis_func>> out=C;
+		for(int i=0; i<C.size(); i++)
+			out[i]=multiply({P},C[i]);
+
+		//take dot product with each basis function to get D
+		//i.e. C^+ (PC)
+
+		Matrix out2=S; //just because S has the correct dimensions
+		for(int i=0; i<out2.cols(); i++)
+			for(int j=0; j<out2.rows(); j++)
+				out2(i,j)=dot(C[i],out[j]);
+
+		if(debug)
+			cout << "C^+ (PC) \n" << out2 << "\n";
+
+		Matrix D_P = invS*out2;
+
+		if(debug)
+			cout << "S^-1 C^+ (PC) \n" << D_P << "\n";
+
+		//cout << "invP: \n";
+		
+	       	summand.perm=invperm(P.perm);
+
+		// Wigner operator $W_{i,j}$ is proportional to $DP_{j,i}$, not
+		// $DP_{i,j}$. This is a result of using the orthogonality 
+		// theorem. 
+		//
+		// See elementary group theory notes equations (32-34)  
+		summand.coeff= (dl*1.0)*D_P(j,i)/(1.0*h);
+
+		if(fabs(summand.coeff)>1e-12)
+			Wij.push_back(summand);
+
+	}while(std::next_permutation(P.perm.begin(), P.perm.end()));
+
+	return Wij;
+}
+
+Matrix
+irrepP(perm_a P, const std::vector<std::vector<basis_func>> C)
+{
+	using std::vector;
+	bool debug=false;
+
+	Matrix S;
+	S.resize(C.size(),C.size());
+	for(int i=0; i<S.cols(); i++)
+		for(int j=0; j<S.rows(); j++)
+			S(i,j)=dot(C[i],C[j]);
+
+
+	vector<vector<basis_func>> out=C;
+	for(int i=0; i<C.size(); i++)
+		out[i]=multiply({P},C[i]);
+
+	//take dot product with each basis function to get D
+	//i.e. C^+ (PC)
+
+
+	Matrix out2=S; //just because S will have the correct dimensions
+
+	//overwrite everything with
+	for(int i=0; i<out2.cols(); i++)
+		for(int j=0; j<out2.rows(); j++)
+			out2(i,j)=dot(C[i],out[j]);
+
+	if(debug) cout << "C^+ (PC) \n" << out2 << "\n";
+
+	Matrix D_P = invert_matrix(S)*out2;
+
+	if(debug) cout << "S^-1 C^+ (PC) \n" << D_P << "\n";
+
+	return D_P;
+}
+
 int 
 main()
 {	std::vector<int> F;
@@ -972,6 +1537,7 @@ main()
 	perm_a P12;
 	P12.perm={0,2,1};
 	
+	/*
 	basis_func p12_f=multiply(P12,f);
 	std::cout << " P_12 f coefficient and values: ";
 	std::cout << p12_f.coeff << "\n";
@@ -980,6 +1546,93 @@ main()
 		std::cout << p12_f.orbs[k] << " ";
 	}
 	std::cout << "\n";
+	*/
+
+	return 0;
+}
+/*
+void
+test_orthogonality_theorem()
+{
+	using std::vector;
+	using std::cout;
+
+	int dl=num_young(Nelec,gS);
+	int h = fac[Nelec];
+
+	perm_a P;
+	vector<perm_a> Wij;
+
+	Matrix S;
+	S.resize(C.size(),C.size());
+	for(int i=0; i<S.cols(); i++)
+		for(int j=0; j<S.rows(); j++)
+			S(i,j)=dot(C[i],C[j]);
+
+	Matrix invS=invert_matrix(S);
+
+	P.coeff=1;
+	P.perm={0,1,2};
+
+
+	cout << "dl: " << dl << "\n";
+	cout << "h: " << h << "\n";
+	cout << "dl/h: " << (dl*1.0)/(1.0*h) << "\n";
+	cout << "len(C): " << C.size() << "\n"; 
+
+	perm_a summand;
+
+	do //loop over permutations
+	{
+		
+		cout <<"Permutation: ";
+		print_perm(P);
+
+		vector<vector<basis_func>> out=C;
+		for(int i=0; i<C.size(); i++)
+			out[i]=multiply({P},C[i]);
+
+		//take dot product with each basis function to get D
+		//i.e. C^+ (PC)
+
+		Matrix out2=S; //just because S has the correct dimensions
+		for(int i=0; i<out2.cols(); i++)
+			for(int j=0; j<out2.rows(); j++)
+				out2(i,j)=dot(C[i],out[j]);
+
+		cout << "C^+ (PC) \n" << out2 << "\n";
+
+		Matrix D_P = invS*out2;
+
+		cout << "S^-1 C^+ (PC) \n" << D_P << "\n";
+		
+	       	summand.perm=invperm(P.perm);
+
+		// Wigner operator $W_{i,j}$ is proportional to $DP_{j,i}$, not
+		// $DP_{i,j}$. This is a result of using the orthogonality 
+		// theorem. 
+		//
+		// See elementary group theory notes equations (32-34)  
+		summand.coeff= (dl*1.0)*D_P(j,i)/(1.0*h);
+
+		if(fabs(summand.coeff)>1e-12)
+			Wij.push_back(summand);
+
+	}while(std::next_permutation(P.perm.begin(), P.perm.end()));
+
+}
+*/
+
+
+
+int
+alt_young_main()
+{
+	std::vector<int> F;
+	F.clear();
+	F.push_back(2);
+	F.push_back(1);
+>>>>>>> 0325b99d3a99800b24aebb6747aee6fcccdf836b
 	
 	
 	

@@ -4,6 +4,8 @@
 #include"weyl.h"
 #include"young.h"
 
+using std::cout;
+
 int
 Eij(int i, int j, std::vector<int> Tl, std::vector<int> Tr)
 {
@@ -181,42 +183,154 @@ excitation_op(int occ, int vir, const std::vector<basis_func> F)
     return G;
 }
 
+
+
+
 int 
 main(int argc, char *argv[])
 {
     using std::cout;
 
     bool debug=true;
-    if(debug)
+    if(debug && false)
     {
 	    std::cout.precision(10);
 	    std::cout << std::scientific;
     }
 
-    std::vector<int> F;
-    F.clear();
-    F.push_back(2);
-    F.push_back(1);
+    std::vector<int> F={2,1};
+    std::vector<basis_func> wf_init= initial_state(3,{0,0,1});
+    std::vector<std::vector<basis_func>> C = get_irrep_basis(F,wf_init);
 
-    std::vector<basis_func> wf_init= initial_state(3,{0,0,2});
+
     cout << "wf_init= \n"; 
     print_wf(wf_init);
     cout << "\n";
 
-    auto wf=wf_init;
+
+    int d=3;
+    Matrix wf;
+
+    wf.resize(d,1);
+    wf(0)=wf_init[0].coeff;
+    wf(1)=wf_init[1].coeff;
+    wf(2)=wf_init[2].coeff;
 
 
 
-    std::vector<std::vector<basis_func>> C = get_irrep_basis(F,wf_init);
 
     cout << "Obtained states that span the irreducible space\n";
     cout << "C = {";
-    for(auto c : C)
-    {   print_wf(c); cout << "\n"; }
+    for(auto c : C) { print_wf(c); cout << "\n"; }
     cout << "}\n";
 
-    cout << "Orthogonalization of this basis is done using the Wigner ops.\n";
-    
+    cout << "Making Wigner ops with the irreducible reprs\n\n";
+
+    int nu=0;
+    int mu=0;
+
+    perm_a P;
+    P.coeff=1;
+    P.perm={1,0,2};
+
+
+    cout << "perm_matrix(P.perm)\n";
+    cout << perm_matrix(P.perm);
+    cout << "\n\n";
+    cout << irrepP(P,C);
+    cout << "\n----------------------------------\n\n";
+
+    /*************************************************************************/
+    Matrix W00;
+    W00.resize(d,d);
+    for(int i=0; i<d; i++)
+        for(int j=0; j<d; j++)
+	    W00(i,j)=0;
+
+    Matrix W10;
+    W10.resize(d,d);
+    for(int i=0; i<d; i++)
+        for(int j=0; j<d; j++)
+	    W10(i,j)=0;
+ 
+    Matrix W01;
+    W01.resize(d,d);
+    for(int i=0; i<d; i++)
+        for(int j=0; j<d; j++)
+	    W01(i,j)=0;
+
+    Matrix W11;
+    W11.resize(d,d);
+    for(int i=0; i<d; i++)
+        for(int j=0; j<d; j++)
+	    W11(i,j)=0;
+ 
+
+
+
+    //Make W00
+    do //print all irreps
+    {
+        
+	//invert permutation
+	perm_a invP;
+	invP.coeff=1;
+	invP.perm=invperm(P.perm);
+
+	//get irreducible representation of P^-1
+    	auto Dinvg = irrepP(invP,C);
+
+
+	//matrix representation of P
+	Matrix g=perm_matrix(P.perm);
+	cout << "g.cols() \n";
+	cout << g.cols() << "\n";
+
+	
+	//combine according to Wigner definition
+	W00+=Dinvg(0,0)*g/3.0;  //note 3 = d_irrep / d_group
+	W10+=Dinvg(0,1)*g/3.0;  //note 3 = d_irrep / d_group
+	W01+=Dinvg(1,0)*g/3.0;  //note 3 = d_irrep / d_group
+	W11+=Dinvg(1,1)*g/3.0;  //note 3 = d_irrep / d_group
+
+    }while(std::next_permutation(P.perm.begin(), P.perm.end()));
+
+    cout << W00 << "\n\n";
+    cout << W10 << "\n\n";
+    cout << W01 << "\n\n";
+    cout << W11 << "\n\n";
+
+    if(0)
+    {
+        cout << "W00, W10, W01:\n--------------------------\n";
+        cout << W00     << "\n\n";
+        cout << W10     << "\n\n";
+        cout << W01     << "\n\n";
+        cout << "transposed:\n--------------------------\n";
+        cout << W00.transpose()     << "\n\n";
+        cout << W10.transpose()     << "\n\n";
+        cout << W01.transpose()     << "\n\n";
+        cout << "products:\n--------------------------\n";
+        cout << W10*W00 << "\n\n";
+        cout << W00*W10 << "\n\n";
+        cout << "\n\n";
+    }
+
+    auto f1=  W00*wf ;
+    cout << f1      << "\n\n";
+    auto f2=  W10*f1 ;
+    cout << f2      << "\n\n";
+    cout << "\n\n";
+
+    //cout << "inner product: " << dot(f1,f2) << "\n\n";
+
+    return 0;
+}
+
+/*
+int
+alt_main()
+{
     int N=3; //number of electrons
     int gS=2;//gS = 2S+1 -> S=1/2
     std::vector<perm_a> W00=wigner_op(0,0,N,gS,C);
@@ -264,7 +378,7 @@ main(int argc, char *argv[])
 	 << "dot(W00 wf, wf) = " << dot(multiply(W00,wf), wf)     << "\n";
 
     cout << "\n\n-------------------------------------\n\n";
-    /*************************************************************************/
+    / ************************************************************************* /
     //The wave functions are not orthogonal. Why not?
 
     std::vector<perm_a> A;
@@ -355,7 +469,7 @@ main(int argc, char *argv[])
 
 
 
-    /*************************************************************************/
+    / ************************************************************************* /
 
 
 
@@ -372,7 +486,6 @@ main(int argc, char *argv[])
 
     return 0;
 
-    /*
     //                                i j  
     std::vector<basis_func> wfL0=multiply(W00,C[0]);
     std::vector<basis_func> wfL1=multiply(W10,C[0]);
@@ -507,8 +620,8 @@ main(int argc, char *argv[])
     * /
     std::cout << "\n";
     gelfand(M, T, frame_rows);
-    */
     
 
     return 0;
 }
+    */
