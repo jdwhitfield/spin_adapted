@@ -1,0 +1,15 @@
+* Generating integrals from fci_cpp #4
+Integrals input file from fci_cpp, such that half_spin.f90 can directly consume it.
+
+Format ham_ov.dat-
+number of basis
+Ov matrix
+Core Hamiltonian matrix
+Nuclear Repulsion
+
+Format 2_ele.dat-
+number of reduced integral
+i,j,k,l, ee(i,j,k,l)
+
+PS- 2_ele.dat to be generated as chemist notion because half_spin.f90 expect the format in chemist notion
+, which converts internally to physicist notion ( generate both the chemist and physicist later can be decided which one to use)

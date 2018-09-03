@@ -1,0 +1,28 @@
+<2017-10-4>
+Working on my mac again. Today's 30min coding goals to compute the 
+inter-tableau permutations.
+
+* <2017-09-28 Thu>
+** TODO Need to compute nuclear energy
+** TODO Need to factor out output to files
+
+* <2017-08-29 Tue>
+The permutation multiplication is done.  Next, we'll need to compute the 
+alignment permutation.  
+
+Forgot to check for duplicates in the current method.  
+
+Complicated my approach in an effort to tackle the permutation and overlap 
+problems alongside the sorting issue.  So far I haven't had much success in
+outlining it.
+
+* <2017-08-30 Wed>
+The plan for the prim diff function is to 
++ [X] expand the occ and virtual vector to an unsorted list
++ [X] check for differences
++ [X] then sort the non excited orbitals of both them
+Hopefully, then we can insert code in the comparison function to push the 
+changed orbtials to the beginning or end.
+
+Now to compute the matrix element, we'll need a little more algebra. I'll have
+to sit and think a bit about what comes next.  The idea is

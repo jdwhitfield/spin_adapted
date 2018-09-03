@@ -75,7 +75,7 @@ end do
 
 
 !------------------------------------------------------------------
-! Generating all the phi_11
+! Generating all the phi_21
 !write(6,*) list_p11(non_deg+1)
 j = list_p11(non_deg+1)
 do i=non_deg+1,n_weyl
@@ -95,7 +95,7 @@ end do
 !end do
 
 !-----------------------------------------------------------------
-! Generating phi_12
+! Generating phi_22
 !write(6,*) list_p21(non_deg+1)
 j = list_p21(non_deg+1)
 do i=non_deg+1,n_weyl

@@ -11,7 +11,7 @@ subroutine one_element(p1,p2,s1,s2,cp1,cp2,cs1,cs2,np1,np2,ns1,ns2,val)
 ! This subroutines compute 
 !  part <PHI(i)|H|PHI(j)>  where 
 ! PHI(i)=phi_11(i)*alpha_1 + phi_12(i)*alpha_2
-! PHI(i)=phi_11(j)*alpha_1 + phi_12(j)*alpha_2
+! PHI(j)=phi_11(j)*alpha_1 + phi_12(j)*alpha_2
 ! and <alpha_1|alpha_2> = 0 i.e orthogonal
 !--------------------------------------------------------------------------------
 
